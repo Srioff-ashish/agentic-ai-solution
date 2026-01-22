@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "agentic-ai-solution-mcp"
+version = "0.1.0"
+description = "MCP Server for Agentic AI Solution Mock Services"
+authors = ["Development Team <dev@example.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.13"
+mcp = "^0.9.0"
+httpx = "^0.27.0"
+pydantic = "^2.7.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.1.0"
+flake8 = "^7.0.0"
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
