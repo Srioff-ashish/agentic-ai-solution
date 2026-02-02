@@ -1,132 +1,113 @@
-"""Orchestrator for routing requests to appropriate agents"""
+"""Orchestrator for routing requests through LangGraph agent workflow
 
-import json
+This module provides a simple interface to the LangGraph agentic backend.
+The orchestrator routes queries to appropriate agents (Inquiry, General)
+and integrates with the MCP server for payment inquiry tools.
+"""
+
 import logging
 from typing import Any, Optional
 
-from mcp_client import MCPClient
-from agents import InfrastructureAgent, get_llm_client, AgentState
+from mcp_client import MCPPaymentClient
+from langgraph_agents import invoke_agent_graph, set_mcp_client
 from config import Config
 from models import OrchestratorRequest, OrchestratorResponse, AgentResponse, ToolResult
 
 logger = logging.getLogger(__name__)
 
 
-class ServiceRouter:
-    """Routes requests to appropriate service"""
+class AgenticOrchestrator:
+    """
+    Orchestrator that uses LangGraph workflow with MCP tools.
     
-    def __init__(self, mcp_client: MCPClient):
-        self.mcp_client = mcp_client
-        self.llm = get_llm_client()
+    Routes queries to:
+    - Inquiry Agent: For payment/transaction lookups (uses MCP server)
+    - General Agent: For other questions
+    """
+    
+    def __init__(self, mcp_client: Optional[MCPPaymentClient] = None):
+        """
+        Initialize orchestrator with MCP client.
         
-        # Initialize agents
-        self.infrastructure_agent = InfrastructureAgent(mcp_client)
+        Args:
+            mcp_client: MCPPaymentClient for MCP server communication
+        """
+        self.mcp_client = mcp_client or MCPPaymentClient()
+        logger.info(f"Orchestrator initialized with LLM provider: {Config.LLM_PROVIDER}")
+    
+    async def process_query(self, query: str, user_id: Optional[str] = None) -> dict[str, Any]:
+        """
+        Process a query through the LangGraph agent workflow.
+        
+        Args:
+            query: User query string
+            user_id: Optional user identifier
+        
+        Returns:
+            Response dict with response text, service type, and metadata
+        """
+        logger.info(f"Processing query: {query[:100]}...")
+        
+        # Invoke the LangGraph workflow
+        result = await invoke_agent_graph(
+            query=query,
+            mcp_client=self.mcp_client
+        )
+        
+        logger.info(f"Query processed by {result.get('service_type')} agent")
+        return result
     
     async def route_request(self, request: OrchestratorRequest) -> OrchestratorResponse:
-        """Route request to appropriate service"""
+        """
+        Route a request through the agent workflow.
         
-        # Determine service if not provided
-        service = request.service
-        if not service:
-            service = await self._detect_service(request.query)
+        Args:
+            request: OrchestratorRequest with query and context
         
-        logger.info(f"Routing request to service: {service}")
-        
-        # Route to appropriate agent
-        if service == "infrastructure":
-            return await self._handle_infrastructure(request)
-        elif service == "inquiry":
-            return await self._handle_inquiry(request)
-        elif service == "document":
-            return await self._handle_document(request)
-        else:
-            return OrchestratorResponse(
-                query=request.query,
-                service_type="unknown",
-                agent_response=AgentResponse(
-                    agent_type="unknown",
-                    action="error",
-                    reasoning="Could not determine service",
-                    success=False
-                ),
-                status="error",
-                message=f"Unknown service: {service}"
-            )
-    
-    async def _detect_service(self, query: str) -> str:
-        """Detect which service the query is for"""
-        system_prompt = """You are a service router. Analyze the user query and determine which service it belongs to:
-        
-- "infrastructure" for: search, indexing, indices, documents, products, users, orders
-- "inquiry" for: support, ticket, issue, problem, complaint, request, help
-- "document" for: document, file, upload, version, download, attachment
-
-Respond with only the service name: infrastructure, inquiry, or document"""
-        
+        Returns:
+            OrchestratorResponse with agent response and metadata
+        """
         try:
-            # Use the LLM client's analyze_query method
-            action, params, reasoning = await self.llm.analyze_query(
-                query, 
-                system_prompt
-            )
-            
-            # Extract service name from action if present
-            service = action.strip().lower() if action else "infrastructure"
-            
-            # Validate response
-            if service in ["infrastructure", "inquiry", "document"]:
-                return service
-            else:
-                # Default to infrastructure if unsure
-                return "infrastructure"
-        
-        except Exception as e:
-            logger.error(f"Error detecting service: {e}")
-            return "infrastructure"
-    
-    async def _handle_infrastructure(self, request: OrchestratorRequest) -> OrchestratorResponse:
-        """Handle infrastructure service request"""
-        try:
-            agent_state = await self.infrastructure_agent.run(
+            result = await self.process_query(
                 query=request.query,
-                user_id=request.user_id,
-                context=request.context
+                user_id=request.user_id
             )
             
-            # Convert agent state to response
+            # Convert tool_results to ToolResult objects
+            tool_calls = []
+            for tr in result.get("tool_results", []):
+                tool_calls.append(ToolResult(
+                    tool_name=tr.get("tool", "unknown"),
+                    status="executed",
+                    data=tr.get("result"),
+                    metadata={"args": tr.get("args", {})}
+                ))
+            
             agent_response = AgentResponse(
-                agent_type="infrastructure",
-                action=agent_state.action or "unknown",
-                result=agent_state.result,
-                reasoning=agent_state.reasoning,
-                tool_calls=[
-                    ToolResult(
-                        tool_name=call.get("tool", "unknown"),
-                        status="executed",
-                        data=None,
-                        metadata={"params": call.get("params", {})}
-                    )
-                    for call in agent_state.tool_calls
-                ],
-                success=agent_state.success
+                agent_type=result.get("service_type", "unknown"),
+                action="process",
+                result=result.get("response", ""),
+                reasoning=f"Processed by {result.get('service_type')} agent",
+                tool_calls=tool_calls,
+                success=result.get("success", False)
             )
             
             return OrchestratorResponse(
                 query=request.query,
-                service_type="infrastructure",
+                service_type=result.get("service_type", "unknown"),
                 agent_response=agent_response,
-                final_result=agent_state.result,
-                status="success" if agent_state.success else "error",
-                message=agent_state.error or "Infrastructure request completed"
+                final_result=result.get("response", ""),
+                status="success" if result.get("success") else "error",
+                message=result.get("error") or "Query processed successfully"
             )
         
         except Exception as e:
-            logger.error(f"Error handling infrastructure request: {e}")
+            logger.error(f"Error processing request: {e}")
             return OrchestratorResponse(
                 query=request.query,
-                service_type="infrastructure",
+                service_type="error",
                 agent_response=AgentResponse(
-                    agent_type="infrastructure",
+                    agent_type="error",
                     action="error",
                     reasoning=str(e),
                     success=False
@@ -134,39 +115,7 @@ Respond with only the service name: infrastructure, inquiry, or document"""
                 status="error",
                 message=str(e)
             )
-    
-    async def _handle_inquiry(self, request: OrchestratorRequest) -> OrchestratorResponse:
-        """Handle inquiry service request (placeholder for now)"""
-        # Similar to infrastructure, but routes to inquiry_agent
-        # For now, returning a structured response
-        
-        return OrchestratorResponse(
-            query=request.query,
-            service_type="inquiry",
-            agent_response=AgentResponse(
-                agent_type="inquiry",
-                action="process",
-                reasoning="Inquiry agent would process this",
-                success=False  # Not implemented yet
-            ),
-            status="pending",
-            message="Inquiry agent not yet implemented"
-        )
-    
-    async def _handle_document(self, request: OrchestratorRequest) -> OrchestratorResponse:
-        """Handle document service request (placeholder for now)"""
-        # Similar to infrastructure, but routes to document_agent
-        # For now, returning a structured response
-        
-        return OrchestratorResponse(
-            query=request.query,
-            service_type="document",
-            agent_response=AgentResponse(
-                agent_type="document",
-                action="process",
-                reasoning="Document agent would process this",
-                success=False  # Not implemented yet
-            ),
-            status="pending",
-            message="Document agent not yet implemented"
-        )
+
+
+# Backwards compatibility alias
+ServiceRouter = AgenticOrchestrator

@@ -1,6 +1,6 @@
 # Agentic AI Solution - MCP Server
 
-MCP (Model Context Protocol) server that exposes the mock API services (Infrastructure, Inquiry, Document) to LLMs and other MCP clients.
+MCP (Model Context Protocol) server using **FastMCP** that exposes Payment and Transaction Inquiry services to LLMs and MCP clients.
 
 ## Overview
 
@@ -8,10 +8,10 @@ This MCP server acts as a bridge between:
 - **LLM/Client side**: Claude, other LLMs, or MCP client applications
 - **Backend services**: FastAPI mock services running on `http://localhost:8000`
 
-The server exposes **22+ tools** covering:
-- Infrastructure Service: Index management, document indexing, full-text search
-- Inquiry Service: Ticket management, response handling, status tracking
-- Document Service: Document upload, versioning, preview generation
+The server exposes **11 tools** for:
+- Payment Inquiry: Search, list, and retrieve payment details
+- Transaction Inquiry: Search, list, and retrieve transaction details
+- Statistics: Get payment/transaction status breakdowns
 
 ## Prerequisites
 
@@ -31,11 +31,12 @@ poetry install --no-root
 ### Running the MCP Server
 
 ```bash
-# Start the MCP server
+# Start the MCP server (stdio mode)
 poetry run python main.py
-```
 
-The server will start and listen on stdin/stdout for MCP protocol messages.
+# Or use fastmcp directly
+poetry run fastmcp run main.py
+```
 
 ### Connecting from Claude Desktop
 
@@ -44,7 +45,7 @@ Add to your Claude `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "agentic-ai-solution": {
+    "payment-inquiry": {
       "command": "poetry",
       "args": ["run", "python", "main.py"],
       "cwd": "c:\\Users\\ashish_srivastava\\Downloads\\agentic-ai-solution\\agentic-ai-solution-mcp"
@@ -55,67 +56,92 @@ Add to your Claude `claude_desktop_config.json`:
 
 ## Available Tools
 
-### Infrastructure Service (5 tools)
+### Health & Statistics (2 tools)
 
-- **infra_list_indices**: List all search indices
-- **infra_create_index**: Create a new search index
-- **infra_get_index**: Get details of a search index
-- **infra_index_document**: Index a document in a search index
-- **infra_search_documents**: Search documents with full-text query
+| Tool | Description |
+|------|-------------|
+| `health_check` | Check overall API health status |
+| `get_inquiry_stats` | Get payment and transaction statistics with status breakdown |
 
-### Inquiry Service (6 tools)
+### Payment Tools (5 tools)
 
-- **inquiry_list**: List inquiries with optional filters (status, priority)
-- **inquiry_create**: Create a new support ticket/inquiry
-- **inquiry_get**: Get details of a specific inquiry
-- **inquiry_add_response**: Add a response to an inquiry
-- **inquiry_update_status**: Update inquiry status (open, in_progress, resolved, closed)
-- **inquiry_search**: Search inquiries by title or description
+| Tool | Description |
+|------|-------------|
+| `list_payments` | List all payments with pagination |
+| `search_payments` | Search payments by ID, message ID, IBAN, status, channel, product, date range |
+| `get_payment` | Get payment details by payment ID |
+| `get_payment_with_transactions` | Get payment with all associated transactions |
+| `get_payment_by_message_id` | Get payment by message ID |
 
-### Document Service (6 tools)
+### Transaction Tools (4 tools)
 
-- **document_list**: List documents with optional filters
-- **document_upload**: Upload a document with metadata
-- **document_get**: Get document details
-- **document_preview**: Get document preview
-- **document_get_versions**: Get all versions of a document
-- **document_create_version**: Create a new version of a document
+| Tool | Description |
+|------|-------------|
+| `list_transactions` | List all transactions with pagination |
+| `search_transactions` | Search by ID, payment ID, E2E ID, IBAN, status, amount, currency, date range |
+| `get_transaction` | Get transaction details by transaction ID |
+| `get_transactions_by_payment` | Get all transactions for a payment |
+| `get_transaction_by_end_to_end_id` | Get transaction by end-to-end ID |
+
+## Status Codes
+
+### Payment Statuses
+- `RCVD` - Received
+- `ACTC` - Accepted Technical Validation
+- `ACCP` - Accepted Customer Profile  
+- `ACSP` - Accepted Settlement in Process
+- `ACSC` - Accepted Settlement Completed
+- `IAUT` - In Authorization
+- `RJCT` - Rejected
+
+### Transaction Statuses
+- `ACTC` - Accepted Technical Validation
+- `ACSC` - Accepted Settlement Completed
+- `RJCT` - Rejected
 
 ## Example Tool Calls
 
-### Search Products by Name
+### Get Payment Statistics
 
 ```
-Tool: infra_search_documents
+Tool: get_inquiry_stats
+Arguments: {}
+```
+
+### Search Rejected Payments
+
+```
+Tool: search_payments
 Arguments:
-  index_id: "products"
-  query: "iPhone"
+  status: "RJCT"
   limit: 10
 ```
 
-### Create a Support Ticket
+### Get Payment with Transactions
 
 ```
-Tool: inquiry_create
+Tool: get_payment_with_transactions
 Arguments:
-  title: "Cannot login to account"
-  description: "I'm unable to login to my account with my credentials"
-  customer_id: "cust_001"
-  priority: "high"
-  tags: ["login", "account"]
+  pmt_id: "d145a790-8ef1-4776-8e98-92dad80f0a9d"
 ```
 
-### Upload a Document
+### Search Transactions by IBAN
 
 ```
-Tool: document_upload
+Tool: search_transactions
 Arguments:
-  filename: "Q4_Report.xlsx"
-  doc_type: "spreadsheet"
-  file_size: 524288
-  upload_by: "user_001"
-  metadata: {"year": 2024, "quarter": "Q4"}
-  tags: ["financial", "report"]
+  iban: "NL19INGB0588118729"
+  limit: 20
+```
+
+### Search Transactions by Amount Range
+
+```
+Tool: search_transactions
+Arguments:
+  amount_min: 0.01
+  amount_max: 100.00
+  currency: "EUR"
 ```
 
 ## Architecture
@@ -128,9 +154,9 @@ Arguments:
                │ MCP Protocol (stdin/stdout)
                │
 ┌──────────────▼──────────────┐
-│  MCP Server (main.py)       │
-│  ├─ Tool Definitions        │
-│  └─ Tool Handlers           │
+│  FastMCP Server (main.py)   │
+│  ├─ @mcp.tool() decorators  │
+│  └─ Tool functions          │
 └──────────────┬──────────────┘
                │ HTTP Requests
                │
@@ -142,9 +168,8 @@ Arguments:
                │
 ┌──────────────▼──────────────┐
 │  FastAPI Mock Services      │
-│  - Infrastructure Service   │
-│  - Inquiry Service          │
-│  - Document Service         │
+│  - Payment Inquiry API      │
+│  - /api/v1/inquiry/*        │
 └─────────────────────────────┘
 ```
 
@@ -152,10 +177,10 @@ Arguments:
 
 ```
 agentic-ai-solution-mcp/
-├── main.py                 # MCP server with tool definitions and handlers
+├── main.py                 # FastMCP server with tool definitions
 ├── api_client.py          # HTTP client wrapper for API calls
-├── pyproject.toml         # Poetry configuration (Python 3.13)
-└── README.md             # This file
+├── pyproject.toml         # Poetry configuration
+└── README.md              # This file
 ```
 
 ## Configuration
@@ -164,10 +189,10 @@ agentic-ai-solution-mcp/
 
 The MCP server connects to the FastAPI backend at `http://localhost:8000` by default.
 
-To change the base URL, edit `api_client.py`:
+To change the base URL, update the `get_client()` call in `api_client.py`:
 
 ```python
-api_client = APIClient(base_url="http://your-api-url:port")
+def get_client(base_url: str = "http://your-api-url:port") -> APIClient:
 ```
 
 ## Error Handling
@@ -175,46 +200,52 @@ api_client = APIClient(base_url="http://your-api-url:port")
 All tools return error messages on failure:
 - Connection errors (API unreachable)
 - Invalid parameters
-- Resource not found errors
+- Resource not found errors (404)
 - API validation errors
-
-## Performance
-
-- Tools execute synchronously with ~200-500ms latency
-- Supports batch operations (bulk document upload, search with pagination)
-- Response sizes: Small (< 1KB) for create operations, up to 50KB for list operations
 
 ## Development
 
 ### Adding New Tools
 
-1. Add tool definition in `main.py` under the appropriate service section
-2. Add handler logic in `handle_call_tool()` function
-3. Add corresponding method in `api_client.py` if needed
+With FastMCP, simply add a new decorated function:
+
+```python
+@mcp.tool()
+def my_new_tool(param1: str, param2: int = 10) -> str:
+    """
+    Tool description here.
+    
+    Args:
+        param1: Description of param1
+        param2: Description of param2 (default: 10)
+    
+    Returns:
+        JSON response
+    """
+    client = get_client()
+    result = client.some_method(param1, param2)
+    return json.dumps(result, indent=2)
+```
 
 ### Testing
 
 ```bash
 # Test imports
-poetry run python -c "from main import server, api_client; print('OK')"
+poetry run python -c "from main import mcp; print('OK')"
 
-# Run with debug logging
-PYTHONUNBUFFERED=1 poetry run python main.py
+# List available tools
+poetry run fastmcp dev main.py
+
+# Run server
+poetry run python main.py
 ```
 
 ## Dependencies
 
-- **mcp** (0.9.1+): Model Context Protocol library
+- **fastmcp** (2.3.4+): FastMCP library for easy MCP server creation
 - **httpx** (0.27.0+): HTTP client for API calls
 - **pydantic** (2.7.0+): Data validation
 
 ## License
 
 Part of the Agentic AI Solution project.
-
-## Support
-
-For issues:
-1. Verify FastAPI mock API is running on port 8000
-2. Check Python 3.13+ is installed
-3. Run `poetry install --no-root` to ensure dependencies

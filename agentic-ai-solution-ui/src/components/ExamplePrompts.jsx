@@ -2,101 +2,53 @@ import React from 'react'
 
 const EXAMPLE_PROMPTS = [
   {
-    category: 'Infrastructure',
-    icon: '🏗️',
-    color: 'from-blue-500 to-blue-600',
-    prompts: [
-      'What is microservices architecture and its benefits?',
-      'Explain cloud computing and deployment models',
-      'How do you design a scalable system architecture?',
-      'What are the differences between monolithic and microservices?',
-      'Explain containerization and Docker basics',
-      'What is Kubernetes and how does it work?',
-    ]
+    icon: '🔥',
+    text: 'Find payment by ID d145a790-8ef1-4776-8e98-92dad80f0a9d'
   },
   {
-    category: 'Inquiry',
-    icon: '❓',
-    color: 'from-purple-500 to-purple-600',
-    prompts: [
-      'What are the best practices for DevOps?',
-      'Tell me about CI/CD pipelines and automation',
-      'How do you implement security in cloud applications?',
-      'What is Infrastructure as Code (IaC)?',
-      'Explain API design principles and REST',
-      'What are the advantages of serverless computing?',
-    ]
+    icon: '🔥',
+    text: 'Show all rejected payments with reason codes'
   },
   {
-    category: 'Documentation',
-    icon: '📄',
-    color: 'from-emerald-500 to-emerald-600',
-    prompts: [
-      'Generate documentation for a REST API endpoint',
-      'Create a technical design document outline',
-      'What should be included in API documentation?',
-      'How to write effective system design documents?',
-      'Generate a deployment guide template',
-      'Create troubleshooting guide for common issues',
-    ]
+    icon: '🔥',
+    text: 'List transactions for IBAN NL19INGB0588118729'
   }
 ]
 
 export default function ExamplePrompts({ onPromptSelect }) {
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Good Morning,'
+    if (hour < 18) return 'Good Afternoon,'
+    return 'Good Evening,'
+  }
+
   return (
-    <div className="w-full px-6 py-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold text-slate-100 mb-2">Try These Examples</h2>
-          <p className="text-slate-400 text-sm">Click any prompt to get started</p>
-        </div>
+    <div className="flex-1 flex flex-col items-center justify-center px-8 py-12">
+      {/* Greeting */}
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-medium text-orange-600 mb-2">{getGreeting()}</h2>
+        <h1 className="text-3xl font-bold text-gray-800">What can I help you with today?</h1>
+      </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {EXAMPLE_PROMPTS.map((category, categoryIdx) => (
-            <div key={categoryIdx} className="space-y-4">
-              {/* Category Header */}
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-3xl">{category.icon}</span>
-                <h3 className="text-lg font-semibold text-slate-100">{category.category}</h3>
-              </div>
+      {/* Suggestion Text */}
+      <p className="text-gray-500 text-sm mb-6">Or would you like to start with one of these?</p>
 
-              {/* Prompts List */}
-              <div className="space-y-3">
-                {category.prompts.map((prompt, promptIdx) => (
-                  <button
-                    key={promptIdx}
-                    onClick={() => onPromptSelect(prompt)}
-                    className={`
-                      w-full text-left p-3 rounded-lg
-                      bg-gradient-to-r ${category.color}
-                      hover:shadow-lg hover:shadow-slate-900/50
-                      hover:scale-105 transform transition-all duration-200
-                      text-slate-100 text-sm leading-relaxed
-                      border border-slate-600/20
-                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400
-                    `}
-                    title={prompt}
-                  >
-                    <div className="flex gap-2">
-                      <span className="text-lg">→</span>
-                      <span className="line-clamp-2">{prompt}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Info Footer */}
-        <div className="mt-12 p-4 bg-slate-800/50 rounded-lg border border-slate-700/30 text-center">
-          <p className="text-slate-400 text-sm">
-            Each category tests a different service. Infrastructure questions test the architecture agent,
-            Inquiry questions test the information agent, and Documentation prompts test the document agent.
-          </p>
-        </div>
+      {/* Prompt Cards */}
+      <div className="flex gap-4 flex-wrap justify-center max-w-3xl">
+        {EXAMPLE_PROMPTS.map((prompt, index) => (
+          <button
+            key={index}
+            onClick={() => onPromptSelect(prompt.text)}
+            className="flex-1 min-w-[200px] max-w-[280px] bg-amber-50 hover:bg-amber-100 border border-amber-100 rounded-xl p-4 text-left transition-all duration-200 hover:shadow-md group"
+          >
+            <div className="text-orange-500 text-xl mb-2">{prompt.icon}</div>
+            <p className="text-gray-700 text-sm leading-relaxed group-hover:text-gray-900">
+              {prompt.text}
+            </p>
+          </button>
+        ))}
       </div>
     </div>
   )

@@ -1,0 +1,173 @@
+{
+  "_index": "transactions-realtime-2026-01",
+  "_id": "M4dRsKtaznZmx67yHNFvdr",
+  "_version": 2,
+  "_routing": "NL10INGB0752867474",
+  "_source": {
+    "ing-chnl-nm": "MINGZ",
+    "pmt-id": "6c7d64d6-d657-41c7-b6f5-5558da4554e8",
+    "txInf-crptyAcct-id-iban": "NL60INGB0752867350",
+    "ing-prdct-nm": "SEPA-CT",
+    "tx-payload": "<CdtTrfTxInf xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.001.001.10\"><PmtId><EndToEndId>NOTPROVIDED</EndToEndId><UETR>6c7d64d6-d657-41c7-b6f5-5558da4554e8</UETR></PmtId><Amt><InstdAmt Ccy=\"EUR\">0.01</InstdAmt></Amt><CdtrAgt><FinInstnId><BICFI>INGBNL2A</BICFI><Nm>ING</Nm><PstlAdr><Ctry>NL</Ctry></PstlAdr></FinInstnId></CdtrAgt><Cdtr><Nm>BedrijfCT_081114552923</Nm></Cdtr><CdtrAcct><Id><IBAN>NL60INGB0752867350</IBAN></Id></CdtrAcct><RmtInf/><SplmtryData><Envlp><ns5:INGSplmtryData xmlns=\"http://ing.com/omaap/001\" xmlns:ns6=\"http://ing.com/omaap/extensions/001\" xmlns:ns5=\"http://www.ing.com/xsd/supl.GCB_EA_Payments_02\" xmlns:ns2=\"urn:iso:std:iso:20022:tech:xsd:pain.002.001.11\" xmlns:ns4=\"urn:iso:std:iso:20022:tech:xsd:pain.008.001.09\" xmlns:ns3=\"urn:iso:std:iso:20022:tech:xsd:pain.001.001.10\"><ns5:INGPrcgData><ns5:INGGblRefs><ns5:INGObjTrnsprt><ns5:INGMsgId>748ad253-48ef-3dc9-ba2f-b52492776d32</ns5:INGMsgId><ns5:INGMsgHash>DEAFEA826409BEE14E5C410841FA6C006DB010F155DFE17A30EB7D566D54B639</ns5:INGMsgHash></ns5:INGObjTrnsprt><ns5:INGInstrRefs><ns5:INGInstrId>6c7d64d6-d657-41c7-b6f5-5558da4554e8</ns5:INGInstrId><ns5:INGInstrHash>DACECD97CE028245F46710A264D5F4C2D8A3DFC00DFAAE29F21750BC6D685A01</ns5:INGInstrHash></ns5:INGInstrRefs><ns5:INGTxRefs><ns5:INGTxId>ee8f1083-0fc8-45b0-ac7e-aafc3ac1341c</ns5:INGTxId></ns5:INGTxRefs></ns5:INGGblRefs><ns5:INGScty><ns5:INGIntgrty><ns5:INGSgntr>nDWiM1M1SYFld/xxg7V3IQEubZnJrjvcQG6iOQazkmdEYT+xf9dka8Ckpnbb+PV2s37FIT61iaCFKIT/g3SyYWE25nphzGCmFtcYfbFJECybIexTuWpb6qwwXJdyNDjKfPfom7hJlv5XtCaaZvvdgsI6I8mwXm2dlleuo0IMiNljhxcmRcWX7xajxjd6leDOySbubCF5ziChEwxHSSLNbt8Bc5cGdlnTMUazLplXQXNjT9neF8+3Ey/zeLjhhfuLwcCCLeHPMfSActf3xY2cZ1EXFFPhI2g9+jt61zmggZHs6a8vuyUYTN68L8B5ZsH6h0jxnd2GSszNgWU6tmBrkA==</ns5:INGSgntr><ns5:INGThmbprt>JHQZ1s5tR8Sa4DzLviPB/ZxYzUQHXE1cjJyptYdU33U=</ns5:INGThmbprt><ns5:INGTrstdStmp><ns5:INGSgntr>EOeVZXhxXEDTwWzVmIjWHijsvsnPyEEJ+pZpYTap02qNoLgL233AET7KvByci3tP/rchIByHQQFFOTbGA3oy3BNi9tfe7kxpAQM2qtk4f7cdCyHGe2ek2fsQrpUKdzYKgmAAXbq9gXgdEXrScDGHAp91L8AHsAUPz1i8a3TEJbGfvLswTJ19wkFb6KekLQM5yd5uwYOrJHhmGuJ6R0xuHH8BwBCIh6LH7px+g4l+PrMX9Uty3fi67lj8ppDG4RiNn5YIZtIm2LuPSlIpmFri5Ds3iY+7aWFCS5OQ/WBsPiXG2fncMlcoVD0z5vPjxVlbHo5grC87A7krVZv+FrsEqQ==</ns5:INGSgntr><ns5:INGThmbprt>JHQZ1s5tR8Sa4DzLviPB/ZxYzUQHXE1cjJyptYdU33U=</ns5:INGThmbprt><ns5:TmStmp>2026-01-29T12:08:41.634Z</ns5:TmStmp></ns5:INGTrstdStmp></ns5:INGIntgrty></ns5:INGScty></ns5:INGPrcgData><ns5:INGBizData><ns5:INGMsgInf><ns5:INGTenant>RTL-NL</ns5:INGTenant></ns5:INGMsgInf><ns5:INGLabels><ns5:Message/><ns5:Order/><ns5:Transaction><ns5:INGLabel><ns5:Key>hidden.omaap.transaction.position</ns5:Key><ns5:Value>0</ns5:Value></ns5:INGLabel></ns5:Transaction></ns5:INGLabels><ns5:INGPmtInf><ns5:PrdRef/></ns5:INGPmtInf></ns5:INGBizData></ns5:INGSplmtryData></Envlp></SplmtryData></CdtTrfTxInf>",
+    "txInf-pmtId-endToEndId": "NOTPROVIDED",
+    "tx-sts": "ACSC",
+    "pmtInf-pmtInfId": "1",
+    "txInf-amt-instdAmt-value": 0.01,
+    "ing-rcvd-dtTm": "2026-01-29T12:08:41.777Z",
+    "pmtInf-orgtAgt-finInstnId-BICFI": "INGBNL2A",
+    "pmtInf-pmtMtd": "TRF",
+    "tx-id": "ee8f1083-0fc8-45b0-ac7e-aafc3ac1341c",
+    "tenant": "RTL-NL",
+    "search-by": "all",
+    "pmtInf-nbOfTxs": 1,
+    "msg-id": "748ad253-48ef-3dc9-ba2f-b52492776d32",
+    "txInf-crpty-nm": "BedrijfCT_081114552923",
+    "tx-pos": 0,
+    "txInf-amt-instdAmt-ccy": "EUR",
+    "txInf-crptyAcct-id-othr-BICFI": "INGBNL2A",
+    "grpHdr-msgId": "48d6fae0-1c6e-4334-9e99-069c29e199",
+    "tx-stsHist": [
+      {
+        "cd": "ACTC",
+        "dtTm": "2026-01-29T12:08:41.777Z"
+      },
+      {
+        "cd": "ACSC",
+        "dtTm": "2026-01-29T12:09:22.393Z"
+      }
+    ],
+    "@timestamp": "2026-01-29T12:09:22.696Z",
+    "pmtInf-orgtAcct-id-iban": "NL10INGB0752867474",
+    "pmtInf-orgt-nm": "BedrijfCT_081114552923",
+    "tx-stsDtTm": "2026-01-29T12:09:22.393Z",
+    "tx-adtLog": [
+      {
+        "ref": "GenericCT-OM-ENR0205",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.cdtTrfTxInf.cdtrAgt.finInstnId.nm] has been enriched.</log><newVal>ING</newVal></AdtLog>",
+        "dtTm": "2026-01-29T12:08:41.855Z"
+      },
+      {
+        "ref": "GenericCT-OM-ENR0209",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.cdtTrfTxInf.cdtrAgt.finInstnId.bicfi] has been enriched.</log><newVal>INGBNL2A</newVal></AdtLog>",
+        "dtTm": "2026-01-29T12:08:41.854Z"
+      }
+    ],
+    "pmtInf-pmtTpInf-svcLvl": "SEPA",
+    "txInf-pmtId-uetr": "6c7d64d6-d657-41c7-b6f5-5558da4554e8",
+    "pmtInf-ctrlSum": "0.01",
+    "pmtInf-reqdExctnDt-dt": "2026-01-29",
+    "tx-rsnCd": null
+  },
+  "fields": {
+    "ing-chnl-nm": [
+      "MINGZ"
+    ],
+    "pmt-id": [
+      "6c7d64d6-d657-41c7-b6f5-5558da4554e8"
+    ],
+    "txInf-crptyAcct-id-iban": [
+      "NL60INGB0752867350"
+    ],
+    "ing-prdct-nm": [
+      "SEPA-CT"
+    ],
+    "tx-payload": [
+      "<CdtTrfTxInf xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.001.001.10\"><PmtId><EndToEndId>NOTPROVIDED</EndToEndId><UETR>6c7d64d6-d657-41c7-b6f5-5558da4554e8</UETR></PmtId><Amt><InstdAmt Ccy=\"EUR\">0.01</InstdAmt></Amt><CdtrAgt><FinInstnId><BICFI>INGBNL2A</BICFI><Nm>ING</Nm><PstlAdr><Ctry>NL</Ctry></PstlAdr></FinInstnId></CdtrAgt><Cdtr><Nm>BedrijfCT_081114552923</Nm></Cdtr><CdtrAcct><Id><IBAN>NL60INGB0752867350</IBAN></Id></CdtrAcct><RmtInf/><SplmtryData><Envlp><ns5:INGSplmtryData xmlns=\"http://ing.com/omaap/001\" xmlns:ns6=\"http://ing.com/omaap/extensions/001\" xmlns:ns5=\"http://www.ing.com/xsd/supl.GCB_EA_Payments_02\" xmlns:ns2=\"urn:iso:std:iso:20022:tech:xsd:pain.002.001.11\" xmlns:ns4=\"urn:iso:std:iso:20022:tech:xsd:pain.008.001.09\" xmlns:ns3=\"urn:iso:std:iso:20022:tech:xsd:pain.001.001.10\"><ns5:INGPrcgData><ns5:INGGblRefs><ns5:INGObjTrnsprt><ns5:INGMsgId>748ad253-48ef-3dc9-ba2f-b52492776d32</ns5:INGMsgId><ns5:INGMsgHash>DEAFEA826409BEE14E5C410841FA6C006DB010F155DFE17A30EB7D566D54B639</ns5:INGMsgHash></ns5:INGObjTrnsprt><ns5:INGInstrRefs><ns5:INGInstrId>6c7d64d6-d657-41c7-b6f5-5558da4554e8</ns5:INGInstrId><ns5:INGInstrHash>DACECD97CE028245F46710A264D5F4C2D8A3DFC00DFAAE29F21750BC6D685A01</ns5:INGInstrHash></ns5:INGInstrRefs><ns5:INGTxRefs><ns5:INGTxId>ee8f1083-0fc8-45b0-ac7e-aafc3ac1341c</ns5:INGTxId></ns5:INGTxRefs></ns5:INGGblRefs><ns5:INGScty><ns5:INGIntgrty><ns5:INGSgntr>nDWiM1M1SYFld/xxg7V3IQEubZnJrjvcQG6iOQazkmdEYT+xf9dka8Ckpnbb+PV2s37FIT61iaCFKIT/g3SyYWE25nphzGCmFtcYfbFJECybIexTuWpb6qwwXJdyNDjKfPfom7hJlv5XtCaaZvvdgsI6I8mwXm2dlleuo0IMiNljhxcmRcWX7xajxjd6leDOySbubCF5ziChEwxHSSLNbt8Bc5cGdlnTMUazLplXQXNjT9neF8+3Ey/zeLjhhfuLwcCCLeHPMfSActf3xY2cZ1EXFFPhI2g9+jt61zmggZHs6a8vuyUYTN68L8B5ZsH6h0jxnd2GSszNgWU6tmBrkA==</ns5:INGSgntr><ns5:INGThmbprt>JHQZ1s5tR8Sa4DzLviPB/ZxYzUQHXE1cjJyptYdU33U=</ns5:INGThmbprt><ns5:INGTrstdStmp><ns5:INGSgntr>EOeVZXhxXEDTwWzVmIjWHijsvsnPyEEJ+pZpYTap02qNoLgL233AET7KvByci3tP/rchIByHQQFFOTbGA3oy3BNi9tfe7kxpAQM2qtk4f7cdCyHGe2ek2fsQrpUKdzYKgmAAXbq9gXgdEXrScDGHAp91L8AHsAUPz1i8a3TEJbGfvLswTJ19wkFb6KekLQM5yd5uwYOrJHhmGuJ6R0xuHH8BwBCIh6LH7px+g4l+PrMX9Uty3fi67lj8ppDG4RiNn5YIZtIm2LuPSlIpmFri5Ds3iY+7aWFCS5OQ/WBsPiXG2fncMlcoVD0z5vPjxVlbHo5grC87A7krVZv+FrsEqQ==</ns5:INGSgntr><ns5:INGThmbprt>JHQZ1s5tR8Sa4DzLviPB/ZxYzUQHXE1cjJyptYdU33U=</ns5:INGThmbprt><ns5:TmStmp>2026-01-29T12:08:41.634Z</ns5:TmStmp></ns5:INGTrstdStmp></ns5:INGIntgrty></ns5:INGScty></ns5:INGPrcgData><ns5:INGBizData><ns5:INGMsgInf><ns5:INGTenant>RTL-NL</ns5:INGTenant></ns5:INGMsgInf><ns5:INGLabels><ns5:Message/><ns5:Order/><ns5:Transaction><ns5:INGLabel><ns5:Key>hidden.omaap.transaction.position</ns5:Key><ns5:Value>0</ns5:Value></ns5:INGLabel></ns5:Transaction></ns5:INGLabels><ns5:INGPmtInf><ns5:PrdRef/></ns5:INGPmtInf></ns5:INGBizData></ns5:INGSplmtryData></Envlp></SplmtryData></CdtTrfTxInf>"
+    ],
+    "tx-sts": [
+      "ACSC"
+    ],
+    "txInf-pmtId-endToEndId": [
+      "NOTPROVIDED"
+    ],
+    "tx-stsHist.dtTm": [
+      "2026-01-29T12:08:41.777Z",
+      "2026-01-29T12:09:22.393Z"
+    ],
+    "pmtInf-pmtInfId": [
+      "1"
+    ],
+    "txInf-amt-instdAmt-value": [
+      0.01
+    ],
+    "tx-adtLog.ref": [
+      "GenericCT-OM-ENR0205",
+      "GenericCT-OM-ENR0209"
+    ],
+    "ing-rcvd-dtTm": [
+      "2026-01-29T12:08:41.777Z"
+    ],
+    "pmtInf-orgtAgt-finInstnId-BICFI": [
+      "INGBNL2A"
+    ],
+    "pmtInf-pmtMtd": [
+      "TRF"
+    ],
+    "tx-id": [
+      "ee8f1083-0fc8-45b0-ac7e-aafc3ac1341c"
+    ],
+    "tenant": [
+      "RTL-NL"
+    ],
+    "search-by": [
+      "all"
+    ],
+    "pmtInf-nbOfTxs": [
+      1
+    ],
+    "msg-id": [
+      "748ad253-48ef-3dc9-ba2f-b52492776d32"
+    ],
+    "txInf-crpty-nm": [
+      "BedrijfCT_081114552923"
+    ],
+    "tx-adtLog.log": [
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.cdtTrfTxInf.cdtrAgt.finInstnId.nm] has been enriched.</log><newVal>ING</newVal></AdtLog>",
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.cdtTrfTxInf.cdtrAgt.finInstnId.bicfi] has been enriched.</log><newVal>INGBNL2A</newVal></AdtLog>"
+    ],
+    "tx-pos": [
+      0
+    ],
+    "txInf-amt-instdAmt-ccy": [
+      "EUR"
+    ],
+    "txInf-crptyAcct-id-othr-BICFI": [
+      "INGBNL2A"
+    ],
+    "grpHdr-msgId": [
+      "48d6fae0-1c6e-4334-9e99-069c29e199"
+    ],
+    "tx-stsHist.cd": [
+      "ACTC",
+      "ACSC"
+    ],
+    "@timestamp": [
+      "2026-01-29T12:09:22.696Z"
+    ],
+    "pmtInf-orgtAcct-id-iban": [
+      "NL10INGB0752867474"
+    ],
+    "pmtInf-orgt-nm": [
+      "BedrijfCT_081114552923"
+    ],
+    "tx-stsDtTm": [
+      "2026-01-29T12:09:22.393Z"
+    ],
+    "pmtInf-pmtTpInf-svcLvl": [
+      "SEPA"
+    ],
+    "txInf-pmtId-uetr": [
+      "6c7d64d6-d657-41c7-b6f5-5558da4554e8"
+    ],
+    "tx-adtLog.dtTm": [
+      "2026-01-29T12:08:41.855Z",
+      "2026-01-29T12:08:41.854Z"
+    ],
+    "pmtInf-ctrlSum": [
+      0.01
+    ],
+    "pmtInf-reqdExctnDt-dt": [
+      "2026-01-29T00:00:00.000Z"
+    ]
+  }
+}

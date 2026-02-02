@@ -1,0 +1,259 @@
+{
+  "_index": "payments-2026-01",
+  "_id": "L3NVkhqHYwVTZqS3NCdADW",
+  "_version": 1,
+  "_routing": "NL19INGB0588118729",
+  "_source": {
+    "ing-cutoff-mod-dt": "2026-01-28T23:00:00.000Z",
+    "pmtInf-pmtTpInf-lclInstrm": "INST",
+    "ing-exctn-dt": "2026-01-29T00:00:00.000Z",
+    "ing-chnl-nm": "MOBP",
+    "pmt-id": "2734a6af-8522-473a-a28b-50ac3620babe",
+    "grpHdr-nbOfTxs": 1,
+    "ing-prdct-nm": "INST",
+    "pmt-adtLog": [
+      {
+        "ref": "Generic-OM-ENR0105",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.cdtTrfTxInf.splmtryData.envlp.INGSplmtryData.INGBizData.INGLabels.order.INGLabel.key.(omaap.tenant.product)] has been enriched.</log><orgnlVal></orgnlVal><newVal>INST</newVal></AdtLog>",
+        "dtTm": "2026-01-29T15:02:07.867Z"
+      },
+      {
+        "ref": "GenericCT-OM-ENR0105",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[dbtrAgt.finInstnId.bicFi] has been enriched.</log><orgnlVal></orgnlVal><newVal>INGBNL2A</newVal></AdtLog>",
+        "dtTm": "2026-01-29T15:02:07.840Z"
+      },
+      {
+        "ref": "GenericCT-OM-ENR0104",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.btchBookg] has been enriched.</log><newVal>true</newVal></AdtLog>",
+        "dtTm": "2026-01-29T15:02:07.840Z"
+      },
+      {
+        "ref": "GenericCT-OM-ENR0107",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.dbtr.nm] has been enriched.</log><orgnlVal>Debtor Name</orgnlVal><newVal>Hr RXO Groot-PernisCT</newVal></AdtLog>",
+        "dtTm": "2026-01-29T15:02:07.866Z"
+      },
+      {
+        "ref": "SEPACT-OM-ENR0100",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.pmtTpInf.svcLvl.cd] has been enriched.</log><orgnlVal>[]</orgnlVal><newVal>[class ServiceLevel8Choice {\n    cd: SEPA\n    prtry: null\n}]</newVal></AdtLog>",
+        "dtTm": "2026-01-29T15:02:07.840Z"
+      },
+      {
+        "ref": "SEPACT-OM-ENR0107",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.dbtrAcct.ccy] has been enriched.</log><newVal>EUR</newVal></AdtLog>",
+        "dtTm": "2026-01-29T15:02:07.865Z"
+      },
+      {
+        "ref": "GenericCT-OM-ENR0114",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.dbtr.PstlAdr] has been enriched.</log><newVal>class PostalAddress24 {\n    adrLine: null\n    adrTp: null\n    bldgNb: null\n    bldgNm: null\n    ctry: null\n    ctrySubDvsn: null\n    dept: null\n    dstrctNm: null\n    flr: null\n    pstBx: null\n    pstcd: null\n    room: null\n    strtNm: null\n    subDept: null\n    twnLctnNm: null\n    twnNm: null\n}</newVal></AdtLog>",
+        "dtTm": "2026-01-29T15:02:07.902Z"
+      },
+      {
+        "ref": "GenericCT-OM-ENR0212",
+        "log": "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[hidden.omaap.order.on-us] has been enriched.</log><newVal>false</newVal></AdtLog>",
+        "dtTm": "2026-01-29T15:02:07.903Z"
+      }
+    ],
+    "pmt-sts": "IAUT",
+    "labels-omaap.tenant.product": "INST",
+    "pmtInf-pmtInfId": "2734a6af8522473aa28b50ac3620babe",
+    "ing-rels-hndlr": "rtpe-inst-ct-pe",
+    "ing-rcvd-dtTm": "2026-01-29T15:02:07.730Z",
+    "pmtInf-orgtAgt-finInstnId-BICFI": "INGBNL2A",
+    "grpHdr-initgPty-nm": "testcenter",
+    "pmtInf-pmtMtd": "TRF",
+    "pmt-payload": "<PmtInf xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.001.001.10\"><PmtInfId>2734a6af8522473aa28b50ac3620babe</PmtInfId><PmtMtd>TRF</PmtMtd><BtchBookg>true</BtchBookg><NbOfTxs>1</NbOfTxs><CtrlSum>0.01</CtrlSum><PmtTpInf><InstrPrty>NORM</InstrPrty><SvcLvl><Cd>SEPA</Cd></SvcLvl><LclInstrm><Cd>INST</Cd></LclInstrm></PmtTpInf><ReqdExctnDt><Dt>2026-01-29</Dt></ReqdExctnDt><Dbtr><Nm>Hr RXO Groot-PernisCT</Nm><PstlAdr/></Dbtr><DbtrAcct><Id><IBAN>NL19INGB0588118729</IBAN></Id><Ccy>EUR</Ccy></DbtrAcct><DbtrAgt><FinInstnId><BICFI>INGBNL2A</BICFI></FinInstnId></DbtrAgt></PmtInf>",
+    "tenant": "RTL-NL",
+    "search-by": "all",
+    "ing-auth-engn": "pending-payments-auth",
+    "pmtInf-nbOfTxs": 1,
+    "msg-id": "6ecdac80-b417-44c5-a4e2-93dd234d0383",
+    "ing-rels-dtTm": "2026-01-28T23:00:00.000Z",
+    "pmt-pos": 0,
+    "tx-indexed": true,
+    "grpHdr-msgId": "6ecdac80b41744c5a4e293dd234d0383",
+    "pmt-rsnCd": null,
+    "pmtInf-orgtAcct-id-iban": "NL19INGB0588118729",
+    "pmtInf-orgt-nm": "Hr RXO Groot-PernisCT",
+    "grpHdr-ctrlSum": "0.01",
+    "ing-cutoff-auth-dt": "2026-01-28T23:00:00.000Z",
+    "ing-cutoff-cncl-dt": "2026-01-28T23:00:00.000Z",
+    "pmtInf-pmtTpInf-svcLvl": "SEPA",
+    "pmt-stsDtTm": "2026-01-29T15:02:07.922Z",
+    "grpHdr-creDtTm": "2026-01-29T15:02:07.253Z",
+    "pmtInf-ctrlSum": "0.01",
+    "pmt-stsHist": [
+      {
+        "cd": "IAUT",
+        "dtTm": "2026-01-29T15:02:07.922Z"
+      },
+      {
+        "cd": "ACTC",
+        "rsnCd": "NARR502",
+        "rsn": "<ns2:StatusReasonsInformation12 xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.002.001.11\" xmlns:ns2=\"http://ing.com/omaap/001\"><ns2:stsRsnInf><Rsn><Prtry>NARR502</Prtry></Rsn><AddtlInf>Service Level Code was enriched to SEPA</AddtlInf></ns2:stsRsnInf></ns2:StatusReasonsInformation12>",
+        "dtTm": "2026-01-29T15:02:07.904Z"
+      },
+      {
+        "cd": "RCVD",
+        "dtTm": "2026-01-29T15:02:07.730Z"
+      }
+    ],
+    "ing-instr-hash": "EFA2559D75D42AA4475DCC87FE59428E7B3901A8D04ECC19EF0B391DBE283ACD",
+    "pmtInf-reqdExctnDt-dt": "2026-01-29"
+  },
+  "fields": {
+    "ing-cutoff-mod-dt": [
+      "2026-01-28T23:00:00.000Z"
+    ],
+    "ing-exctn-dt": [
+      "2026-01-29T00:00:00.000Z"
+    ],
+    "pmtInf-pmtTpInf-lclInstrm": [
+      "INST"
+    ],
+    "ing-chnl-nm": [
+      "MOBP"
+    ],
+    "pmt-id": [
+      "2734a6af-8522-473a-a28b-50ac3620babe"
+    ],
+    "pmt-stsHist.rsnCd": [
+      "NARR502"
+    ],
+    "grpHdr-nbOfTxs": [
+      1
+    ],
+    "ing-prdct-nm": [
+      "INST"
+    ],
+    "pmt-adtLog.ref": [
+      "Generic-OM-ENR0105",
+      "GenericCT-OM-ENR0105",
+      "GenericCT-OM-ENR0104",
+      "GenericCT-OM-ENR0107",
+      "SEPACT-OM-ENR0100",
+      "SEPACT-OM-ENR0107",
+      "GenericCT-OM-ENR0114",
+      "GenericCT-OM-ENR0212"
+    ],
+    "pmt-sts": [
+      "IAUT"
+    ],
+    "labels-omaap.tenant.product": [
+      "INST"
+    ],
+    "pmtInf-pmtInfId": [
+      "2734a6af8522473aa28b50ac3620babe"
+    ],
+    "ing-rels-hndlr": [
+      "rtpe-inst-ct-pe"
+    ],
+    "ing-rcvd-dtTm": [
+      "2026-01-29T15:02:07.730Z"
+    ],
+    "pmtInf-orgtAgt-finInstnId-BICFI": [
+      "INGBNL2A"
+    ],
+    "grpHdr-initgPty-nm": [
+      "testcenter"
+    ],
+    "pmtInf-pmtMtd": [
+      "TRF"
+    ],
+    "pmt-stsHist.rsn": [
+      "<ns2:StatusReasonsInformation12 xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.002.001.11\" xmlns:ns2=\"http://ing.com/omaap/001\"><ns2:stsRsnInf><Rsn><Prtry>NARR502</Prtry></Rsn><AddtlInf>Service Level Code was enriched to SEPA</AddtlInf></ns2:stsRsnInf></ns2:StatusReasonsInformation12>"
+    ],
+    "tenant": [
+      "RTL-NL"
+    ],
+    "pmt-payload": [
+      "<PmtInf xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.001.001.10\"><PmtInfId>2734a6af8522473aa28b50ac3620babe</PmtInfId><PmtMtd>TRF</PmtMtd><BtchBookg>true</BtchBookg><NbOfTxs>1</NbOfTxs><CtrlSum>0.01</CtrlSum><PmtTpInf><InstrPrty>NORM</InstrPrty><SvcLvl><Cd>SEPA</Cd></SvcLvl><LclInstrm><Cd>INST</Cd></LclInstrm></PmtTpInf><ReqdExctnDt><Dt>2026-01-29</Dt></ReqdExctnDt><Dbtr><Nm>Hr RXO Groot-PernisCT</Nm><PstlAdr/></Dbtr><DbtrAcct><Id><IBAN>NL19INGB0588118729</IBAN></Id><Ccy>EUR</Ccy></DbtrAcct><DbtrAgt><FinInstnId><BICFI>INGBNL2A</BICFI></FinInstnId></DbtrAgt></PmtInf>"
+    ],
+    "search-by": [
+      "all"
+    ],
+    "ing-auth-engn": [
+      "pending-payments-auth"
+    ],
+    "pmtInf-nbOfTxs": [
+      1
+    ],
+    "msg-id": [
+      "6ecdac80-b417-44c5-a4e2-93dd234d0383"
+    ],
+    "ing-rels-dtTm": [
+      "2026-01-28T23:00:00.000Z"
+    ],
+    "pmt-adtLog.dtTm": [
+      "2026-01-29T15:02:07.867Z",
+      "2026-01-29T15:02:07.840Z",
+      "2026-01-29T15:02:07.840Z",
+      "2026-01-29T15:02:07.866Z",
+      "2026-01-29T15:02:07.840Z",
+      "2026-01-29T15:02:07.865Z",
+      "2026-01-29T15:02:07.902Z",
+      "2026-01-29T15:02:07.903Z"
+    ],
+    "pmt-pos": [
+      0
+    ],
+    "tx-indexed": [
+      true
+    ],
+    "grpHdr-msgId": [
+      "6ecdac80b41744c5a4e293dd234d0383"
+    ],
+    "pmt-stsHist.cd": [
+      "IAUT",
+      "ACTC",
+      "RCVD"
+    ],
+    "pmtInf-orgtAcct-id-iban": [
+      "NL19INGB0588118729"
+    ],
+    "pmtInf-orgt-nm": [
+      "Hr RXO Groot-PernisCT"
+    ],
+    "grpHdr-ctrlSum": [
+      0.01
+    ],
+    "ing-cutoff-auth-dt": [
+      "2026-01-28T23:00:00.000Z"
+    ],
+    "ing-cutoff-cncl-dt": [
+      "2026-01-28T23:00:00.000Z"
+    ],
+    "pmt-stsHist.dtTm": [
+      "2026-01-29T15:02:07.922Z",
+      "2026-01-29T15:02:07.904Z",
+      "2026-01-29T15:02:07.730Z"
+    ],
+    "pmtInf-pmtTpInf-svcLvl": [
+      "SEPA"
+    ],
+    "pmt-stsDtTm": [
+      "2026-01-29T15:02:07.922Z"
+    ],
+    "grpHdr-creDtTm": [
+      "2026-01-29T15:02:07.253Z"
+    ],
+    "pmtInf-ctrlSum": [
+      0.01
+    ],
+    "pmt-adtLog.log": [
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.cdtTrfTxInf.splmtryData.envlp.INGSplmtryData.INGBizData.INGLabels.order.INGLabel.key.(omaap.tenant.product)] has been enriched.</log><orgnlVal></orgnlVal><newVal>INST</newVal></AdtLog>",
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[dbtrAgt.finInstnId.bicFi] has been enriched.</log><orgnlVal></orgnlVal><newVal>INGBNL2A</newVal></AdtLog>",
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.btchBookg] has been enriched.</log><newVal>true</newVal></AdtLog>",
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.dbtr.nm] has been enriched.</log><orgnlVal>Debtor Name</orgnlVal><newVal>Hr RXO Groot-PernisCT</newVal></AdtLog>",
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.pmtTpInf.svcLvl.cd] has been enriched.</log><orgnlVal>[]</orgnlVal><newVal>[class ServiceLevel8Choice {\n    cd: SEPA\n    prtry: null\n}]</newVal></AdtLog>",
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.dbtrAcct.ccy] has been enriched.</log><newVal>EUR</newVal></AdtLog>",
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[pmtInf.dbtr.PstlAdr] has been enriched.</log><newVal>class PostalAddress24 {\n    adrLine: null\n    adrTp: null\n    bldgNb: null\n    bldgNm: null\n    ctry: null\n    ctrySubDvsn: null\n    dept: null\n    dstrctNm: null\n    flr: null\n    pstBx: null\n    pstcd: null\n    room: null\n    strtNm: null\n    subDept: null\n    twnLctnNm: null\n    twnNm: null\n}</newVal></AdtLog>",
+      "<AdtLog xmlns=\"http://ing.com/omaap/001\"><log>[hidden.omaap.order.on-us] has been enriched.</log><newVal>false</newVal></AdtLog>"
+    ],
+    "ing-instr-hash": [
+      "EFA2559D75D42AA4475DCC87FE59428E7B3901A8D04ECC19EF0B391DBE283ACD"
+    ],
+    "pmtInf-reqdExctnDt-dt": [
+      "2026-01-29T00:00:00.000Z"
+    ]
+  }
+}

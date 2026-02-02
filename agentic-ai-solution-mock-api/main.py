@@ -7,8 +7,8 @@ from app.routes.document_service import router as document_router
 
 app = FastAPI(
     title="Agentic AI Solution - Mock API",
-    description="Mock API services for Agentic AI Solution",
-    version="0.1.0",
+    description="Mock API services for Payment and Transaction Inquiries",
+    version="0.2.0",
 )
 
 # Configure CORS
@@ -22,7 +22,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(infra_router, prefix="/api/v1/infra", tags=["Infrastructure"])
-app.include_router(inquiry_router, prefix="/api/v1/inquiries", tags=["Inquiries"])
+app.include_router(inquiry_router, prefix="/api/v1/inquiry", tags=["Payment Inquiry"])
 app.include_router(document_router, prefix="/api/v1/documents", tags=["Documents"])
 
 
@@ -33,7 +33,7 @@ async def health_check():
         "status": "healthy",
         "services": {
             "infrastructure": "running",
-            "inquiries": "running",
+            "payment_inquiry": "running",
             "documents": "running",
         },
     }

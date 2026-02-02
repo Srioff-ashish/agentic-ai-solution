@@ -1,241 +1,262 @@
-"""Mock Inquiry Service"""
-import uuid
-from datetime import datetime
-from typing import Dict, Optional
+"""Mock Inquiry Service - Payment and Transaction Data"""
+import json
+import os
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 from app.models import (
-    Inquiry,
-    InquiryStatus,
-    InquiryPriority,
-    InquiryResponse,
-    CreateInquiryRequest,
+    PaymentSearchQuery,
+    TransactionSearchQuery,
+    PaymentSearchResult,
+    TransactionSearchResult,
 )
 
 
 class InquiryService:
-    """Mock inquiry management service"""
+    """Mock inquiry service for payments and transactions"""
 
     def __init__(self):
-        self.inquiries: Dict[str, Inquiry] = {}
-        self.responses: Dict[str, list[InquiryResponse]] = {}
-        self._populate_mock_data()
+        self.payments: Dict[str, dict] = {}
+        self.transactions: Dict[str, dict] = {}
+        self._load_mock_data()
 
-    def _populate_mock_data(self):
-        """Populate with mock inquiry data"""
-        mock_inquiries = [
-            {
-                "title": "Unable to login to account",
-                "description": "I've been trying to log in for the past hour but keep getting an error message",
-                "customer_id": "CUST001",
-                "priority": InquiryPriority.HIGH,
-                "status": InquiryStatus.IN_PROGRESS,
-                "assigned_to": "support_agent_01",
-                "tags": ["login", "account", "urgent"],
-            },
-            {
-                "title": "Refund request for order #ORD001",
-                "description": "The product arrived damaged. I would like to return it and get a full refund",
-                "customer_id": "CUST002",
-                "priority": InquiryPriority.HIGH,
-                "status": InquiryStatus.OPEN,
-                "assigned_to": None,
-                "tags": ["refund", "damaged", "return"],
-            },
-            {
-                "title": "Shipping address update needed",
-                "description": "I need to update my shipping address for a pending order",
-                "customer_id": "CUST003",
-                "priority": InquiryPriority.MEDIUM,
-                "status": InquiryStatus.OPEN,
-                "assigned_to": None,
-                "tags": ["shipping", "address"],
-            },
-            {
-                "title": "Question about product features",
-                "description": "Can you provide more details about the battery life of the product?",
-                "customer_id": "CUST004",
-                "priority": InquiryPriority.LOW,
-                "status": InquiryStatus.RESOLVED,
-                "assigned_to": "support_agent_02",
-                "tags": ["product", "features", "info"],
-            },
-        ]
+    def _load_mock_data(self):
+        """Load payment and transaction data from mockdata JSON files"""
+        # Get the mockdata directory path
+        current_dir = Path(__file__).parent.parent.parent
+        mockdata_dir = current_dir / "mockdata"
 
-        for inq in mock_inquiries:
-            inquiry_id = str(uuid.uuid4())
-            inquiry = Inquiry(
-                inquiry_id=inquiry_id,
-                title=inq["title"],
-                description=inq["description"],
-                customer_id=inq["customer_id"],
-                priority=inq["priority"],
-                status=inq["status"],
-                assigned_to=inq["assigned_to"],
-                tags=inq["tags"],
-            )
-            self.inquiries[inquiry_id] = inquiry
-            self.responses[inquiry_id] = []
+        # Load payment files (epayment01.json, epayment02.json, epayment03.json)
+        for i in range(1, 4):
+            payment_file = mockdata_dir / f"epayment0{i}.json"
+            if payment_file.exists():
+                try:
+                    with open(payment_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        pmt_id = data.get("_source", {}).get("pmt-id")
+                        if pmt_id:
+                            self.payments[pmt_id] = data
+                except Exception as e:
+                    print(f"Error loading {payment_file}: {e}")
 
-        # Add sample responses to some inquiries
-        for idx, inquiry_id in enumerate(list(self.inquiries.keys())[:2]):
-            if idx == 0:
-                response1 = InquiryResponse(
-                    response_id=str(uuid.uuid4()),
-                    inquiry_id=inquiry_id,
-                    content="Thank you for reporting this issue. We're investigating the login error.",
-                    responder_id="support_agent_01",
-                    is_internal=False,
-                )
-                self.responses[inquiry_id].append(response1)
-                
-                response2 = InquiryResponse(
-                    response_id=str(uuid.uuid4()),
-                    inquiry_id=inquiry_id,
-                    content="Issue identified: Server maintenance in progress. Should be resolved within 30 mins.",
-                    responder_id="support_agent_01",
-                    is_internal=True,
-                )
-                self.responses[inquiry_id].append(response2)
+        # Load transaction files (epaymenttxn01.json, epaymenttxn02.json, epaymenttxn03.json)
+        for i in range(1, 4):
+            txn_file = mockdata_dir / f"epaymenttxn0{i}.json"
+            if txn_file.exists():
+                try:
+                    with open(txn_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        tx_id = data.get("_source", {}).get("tx-id")
+                        if tx_id:
+                            self.transactions[tx_id] = data
+                except Exception as e:
+                    print(f"Error loading {txn_file}: {e}")
 
-    def create_inquiry(self, request: CreateInquiryRequest) -> Inquiry:
-        """Create a new inquiry"""
-        inquiry_id = str(uuid.uuid4())
-        inquiry = Inquiry(
-            inquiry_id=inquiry_id,
-            title=request.title,
-            description=request.description,
-            status=InquiryStatus.OPEN,
-            priority=request.priority,
-            customer_id=request.customer_id,
-            tags=request.tags,
-        )
-        self.inquiries[inquiry_id] = inquiry
-        self.responses[inquiry_id] = []
-        return inquiry
+        print(f"Loaded {len(self.payments)} payments and {len(self.transactions)} transactions")
 
-    def get_inquiry(self, inquiry_id: str) -> Optional[Inquiry]:
-        """Get inquiry details"""
-        return self.inquiries.get(inquiry_id)
+    # ============== Payment Methods ==============
 
-    def list_inquiries(
-        self,
-        status: Optional[InquiryStatus] = None,
-        priority: Optional[InquiryPriority] = None,
-        customer_id: Optional[str] = None,
-        assigned_to: Optional[str] = None,
-        skip: int = 0,
-        limit: int = 20,
-    ) -> tuple[list[Inquiry], int]:
-        """List inquiries with filters"""
-        filtered = []
+    def get_payment(self, pmt_id: str) -> Optional[dict]:
+        """Get payment by payment ID"""
+        return self.payments.get(pmt_id)
 
-        for inquiry in self.inquiries.values():
-            if status and inquiry.status != status:
+    def get_payment_by_msg_id(self, msg_id: str) -> Optional[dict]:
+        """Get payment by message ID"""
+        for payment in self.payments.values():
+            if payment.get("_source", {}).get("msg-id") == msg_id:
+                return payment
+        return None
+
+    def search_payments(self, query: PaymentSearchQuery) -> PaymentSearchResult:
+        """Search payments with filters"""
+        results = []
+
+        for payment in self.payments.values():
+            source = payment.get("_source", {})
+
+            # Apply filters
+            if query.pmt_id and source.get("pmt-id") != query.pmt_id:
                 continue
-            if priority and inquiry.priority != priority:
+            if query.msg_id and source.get("msg-id") != query.msg_id:
                 continue
-            if customer_id and inquiry.customer_id != customer_id:
+            if query.iban and source.get("pmtInf-orgtAcct-id-iban") != query.iban:
                 continue
-            if assigned_to and inquiry.assigned_to != assigned_to:
+            if query.status and source.get("pmt-sts") != query.status:
+                continue
+            if query.channel and source.get("ing-chnl-nm") != query.channel:
+                continue
+            if query.product and source.get("ing-prdct-nm") != query.product:
                 continue
 
-            filtered.append(inquiry)
+            # Date filters (simplified - just check if date matches)
+            if query.date_from:
+                rcvd_dt = source.get("ing-rcvd-dtTm", "")
+                if rcvd_dt < query.date_from:
+                    continue
+            if query.date_to:
+                rcvd_dt = source.get("ing-rcvd-dtTm", "")
+                if rcvd_dt > query.date_to:
+                    continue
 
-        # Sort by created_at descending
-        filtered.sort(key=lambda x: x.created_at, reverse=True)
+            results.append(payment)
 
-        total = len(filtered)
-        paginated = filtered[skip : skip + limit]
+        total = len(results)
+        paginated = results[query.offset : query.offset + query.limit]
 
-        return paginated, total
-
-    def update_inquiry(
-        self,
-        inquiry_id: str,
-        title: Optional[str] = None,
-        description: Optional[str] = None,
-        priority: Optional[InquiryPriority] = None,
-        assigned_to: Optional[str] = None,
-        tags: Optional[list[str]] = None,
-    ) -> Optional[Inquiry]:
-        """Update inquiry"""
-        inquiry = self.inquiries.get(inquiry_id)
-        if not inquiry:
-            return None
-
-        if title is not None:
-            inquiry.title = title
-        if description is not None:
-            inquiry.description = description
-        if priority is not None:
-            inquiry.priority = priority
-        if assigned_to is not None:
-            inquiry.assigned_to = assigned_to
-        if tags is not None:
-            inquiry.tags = tags
-
-        inquiry.updated_at = datetime.utcnow()
-        return inquiry
-
-    def update_status(
-        self, inquiry_id: str, status: InquiryStatus
-    ) -> Optional[Inquiry]:
-        """Update inquiry status"""
-        inquiry = self.inquiries.get(inquiry_id)
-        if not inquiry:
-            return None
-
-        inquiry.status = status
-        inquiry.updated_at = datetime.utcnow()
-
-        if status == InquiryStatus.RESOLVED:
-            inquiry.resolved_at = datetime.utcnow()
-
-        return inquiry
-
-    def add_response(
-        self,
-        inquiry_id: str,
-        content: str,
-        responder_id: str,
-        is_internal: bool = False,
-    ) -> Optional[InquiryResponse]:
-        """Add response to inquiry"""
-        if inquiry_id not in self.inquiries:
-            return None
-
-        response_id = str(uuid.uuid4())
-        response = InquiryResponse(
-            response_id=response_id,
-            inquiry_id=inquiry_id,
-            content=content,
-            responder_id=responder_id,
-            is_internal=is_internal,
+        return PaymentSearchResult(
+            total=total,
+            count=len(paginated),
+            offset=query.offset,
+            limit=query.limit,
+            payments=paginated
         )
 
-        self.responses[inquiry_id].append(response)
+    def list_all_payments(self, limit: int = 10, offset: int = 0) -> PaymentSearchResult:
+        """List all payments with pagination"""
+        all_payments = list(self.payments.values())
+        total = len(all_payments)
+        paginated = all_payments[offset : offset + limit]
 
-        # Update inquiry timestamp
-        inquiry = self.inquiries[inquiry_id]
-        inquiry.updated_at = datetime.utcnow()
+        return PaymentSearchResult(
+            total=total,
+            count=len(paginated),
+            offset=offset,
+            limit=limit,
+            payments=paginated
+        )
 
-        return response
+    # ============== Transaction Methods ==============
 
-    def get_responses(self, inquiry_id: str) -> Optional[list[InquiryResponse]]:
-        """Get responses for inquiry"""
-        if inquiry_id not in self.inquiries:
+    def get_transaction(self, tx_id: str) -> Optional[dict]:
+        """Get transaction by transaction ID"""
+        return self.transactions.get(tx_id)
+
+    def get_transaction_by_pmt_id(self, pmt_id: str) -> List[dict]:
+        """Get all transactions for a payment ID"""
+        results = []
+        for txn in self.transactions.values():
+            if txn.get("_source", {}).get("pmt-id") == pmt_id:
+                results.append(txn)
+        return results
+
+    def get_transaction_by_end_to_end_id(self, e2e_id: str) -> Optional[dict]:
+        """Get transaction by end-to-end ID"""
+        for txn in self.transactions.values():
+            if txn.get("_source", {}).get("txInf-pmtId-endToEndId") == e2e_id:
+                return txn
+        return None
+
+    def search_transactions(self, query: TransactionSearchQuery) -> TransactionSearchResult:
+        """Search transactions with filters"""
+        results = []
+
+        for txn in self.transactions.values():
+            source = txn.get("_source", {})
+
+            # Apply filters
+            if query.tx_id and source.get("tx-id") != query.tx_id:
+                continue
+            if query.pmt_id and source.get("pmt-id") != query.pmt_id:
+                continue
+            if query.end_to_end_id and source.get("txInf-pmtId-endToEndId") != query.end_to_end_id:
+                continue
+            if query.status and source.get("tx-sts") != query.status:
+                continue
+            if query.channel and source.get("ing-chnl-nm") != query.channel:
+                continue
+            if query.product and source.get("ing-prdct-nm") != query.product:
+                continue
+            if query.currency and source.get("txInf-amt-instdAmt-ccy") != query.currency:
+                continue
+
+            # IBAN filter (check both originator and counterparty)
+            if query.iban:
+                orig_iban = source.get("pmtInf-orgtAcct-id-iban", "")
+                crpty_iban = source.get("txInf-crptyAcct-id-iban", "")
+                if query.iban not in (orig_iban, crpty_iban):
+                    continue
+
+            # Amount filters
+            amount = source.get("txInf-amt-instdAmt-value", 0)
+            if query.amount_min is not None and amount < query.amount_min:
+                continue
+            if query.amount_max is not None and amount > query.amount_max:
+                continue
+
+            # Date filters
+            if query.date_from:
+                rcvd_dt = source.get("ing-rcvd-dtTm", "")
+                if rcvd_dt < query.date_from:
+                    continue
+            if query.date_to:
+                rcvd_dt = source.get("ing-rcvd-dtTm", "")
+                if rcvd_dt > query.date_to:
+                    continue
+
+            results.append(txn)
+
+        total = len(results)
+        paginated = results[query.offset : query.offset + query.limit]
+
+        return TransactionSearchResult(
+            total=total,
+            count=len(paginated),
+            offset=query.offset,
+            limit=query.limit,
+            transactions=paginated
+        )
+
+    def list_all_transactions(self, limit: int = 10, offset: int = 0) -> TransactionSearchResult:
+        """List all transactions with pagination"""
+        all_txns = list(self.transactions.values())
+        total = len(all_txns)
+        paginated = all_txns[offset : offset + limit]
+
+        return TransactionSearchResult(
+            total=total,
+            count=len(paginated),
+            offset=offset,
+            limit=limit,
+            transactions=paginated
+        )
+
+    # ============== Combined Inquiry Methods ==============
+
+    def get_payment_with_transactions(self, pmt_id: str) -> Optional[dict]:
+        """Get payment along with its associated transactions"""
+        payment = self.get_payment(pmt_id)
+        if not payment:
             return None
-        return self.responses.get(inquiry_id, [])
 
-    def delete_inquiry(self, inquiry_id: str) -> bool:
-        """Delete inquiry"""
-        if inquiry_id in self.inquiries:
-            del self.inquiries[inquiry_id]
-            if inquiry_id in self.responses:
-                del self.responses[inquiry_id]
-            return True
-        return False
+        transactions = self.get_transaction_by_pmt_id(pmt_id)
+        
+        return {
+            "payment": payment,
+            "transactions": transactions,
+            "transaction_count": len(transactions)
+        }
+
+    def get_stats(self) -> dict:
+        """Get statistics about payments and transactions"""
+        payment_statuses = {}
+        transaction_statuses = {}
+
+        for payment in self.payments.values():
+            status = payment.get("_source", {}).get("pmt-sts", "UNKNOWN")
+            payment_statuses[status] = payment_statuses.get(status, 0) + 1
+
+        for txn in self.transactions.values():
+            status = txn.get("_source", {}).get("tx-sts", "UNKNOWN")
+            transaction_statuses[status] = transaction_statuses.get(status, 0) + 1
+
+        return {
+            "total_payments": len(self.payments),
+            "total_transactions": len(self.transactions),
+            "payment_statuses": payment_statuses,
+            "transaction_statuses": transaction_statuses
+        }
 
 
 # Global service instance
 inquiry_service = InquiryService()
+

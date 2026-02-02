@@ -1,214 +1,191 @@
-"""MCP Client for mock API services"""
+"""API Client for Payment and Transaction Inquiry Services"""
 import json
 from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel
 
 
 class APIClient:
-    """Client for interacting with mock API services"""
+    """Client for interacting with Payment Inquiry API services"""
 
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:8001"):
         self.base_url = base_url
-        self.client = httpx.Client(base_url=base_url, timeout=10.0)
+        self.client = httpx.Client(base_url=base_url, timeout=30.0)
 
     def close(self):
         """Close the client"""
         self.client.close()
 
-    # Infrastructure Service Methods
-    def create_index(self, name: str, settings: Optional[dict] = None) -> dict:
-        """Create a new search index"""
-        response = self.client.post(
-            "/api/v1/infra/indices",
-            params={"name": name, **({"settings": json.dumps(settings)} if settings else {})},
-        )
-        response.raise_for_status()
-        return response.json()
-
-    def list_indices(self) -> list:
-        """List all search indices"""
-        response = self.client.get("/api/v1/infra/indices")
-        response.raise_for_status()
-        return response.json()
-
-    def get_index(self, index_id: str) -> dict:
-        """Get index details"""
-        response = self.client.get(f"/api/v1/infra/indices/{index_id}")
-        response.raise_for_status()
-        return response.json()
-
-    def index_document(
-        self, index_id: str, content: str, metadata: Optional[dict] = None
-    ) -> dict:
-        """Index a document"""
-        response = self.client.post(
-            f"/api/v1/infra/indices/{index_id}/documents",
-            params={"content": content, **({"metadata": json.dumps(metadata)} if metadata else {})},
-        )
-        response.raise_for_status()
-        return response.json()
-
-    def search_documents(
-        self, index_id: str, query: str, limit: int = 10, offset: int = 0
-    ) -> dict:
-        """Search documents in index"""
-        response = self.client.post(
-            f"/api/v1/infra/indices/{index_id}/search",
-            params={"query": query, "limit": limit, "offset": offset},
-        )
-        response.raise_for_status()
-        return response.json()
-
-    # Inquiry Service Methods
-    def create_inquiry(
-        self, title: str, description: str, customer_id: str, priority: str = "medium", tags: Optional[list] = None
-    ) -> dict:
-        """Create a new inquiry"""
-        payload = {
-            "title": title,
-            "description": description,
-            "customer_id": customer_id,
-            "priority": priority,
-            "tags": tags or [],
-        }
-        response = self.client.post("/api/v1/inquiries/", json=payload)
-        response.raise_for_status()
-        return response.json()
-
-    def list_inquiries(
-        self,
-        status: Optional[str] = None,
-        priority: Optional[str] = None,
-        skip: int = 0,
-        limit: int = 20,
-    ) -> dict:
-        """List inquiries with filters"""
-        params = {"skip": skip, "limit": limit}
-        if status:
-            params["status"] = status
-        if priority:
-            params["priority"] = priority
-        response = self.client.get("/api/v1/inquiries/", params=params)
-        response.raise_for_status()
-        return response.json()
-
-    def get_inquiry(self, inquiry_id: str) -> dict:
-        """Get inquiry details"""
-        response = self.client.get(f"/api/v1/inquiries/{inquiry_id}")
-        response.raise_for_status()
-        return response.json()
-
-    def add_inquiry_response(
-        self, inquiry_id: str, content: str, responder_id: str, is_internal: bool = False
-    ) -> dict:
-        """Add response to inquiry"""
-        response = self.client.post(
-            f"/api/v1/inquiries/{inquiry_id}/responses",
-            params={"content": content, "responder_id": responder_id, "is_internal": is_internal},
-        )
-        response.raise_for_status()
-        return response.json()
-
-    def update_inquiry_status(self, inquiry_id: str, status: str) -> dict:
-        """Update inquiry status"""
-        response = self.client.put(
-            f"/api/v1/inquiries/{inquiry_id}/status", params={"status": status}
-        )
-        response.raise_for_status()
-        return response.json()
-
-    def search_inquiries(self, query: str, skip: int = 0, limit: int = 20) -> dict:
-        """Search inquiries"""
-        response = self.client.get(
-            "/api/v1/inquiries/search", params={"query": query, "skip": skip, "limit": limit}
-        )
-        response.raise_for_status()
-        return response.json()
-
-    # Document Service Methods
-    def upload_document(
-        self,
-        filename: str,
-        doc_type: str,
-        file_size: int,
-        upload_by: str,
-        metadata: Optional[dict] = None,
-        tags: Optional[list] = None,
-    ) -> dict:
-        """Upload a document"""
-        params = {
-            "filename": filename,
-            "doc_type": doc_type,
-            "file_size": file_size,
-            "upload_by": upload_by,
-        }
-        if metadata:
-            params["metadata"] = json.dumps(metadata)
-        if tags:
-            params["tags"] = json.dumps(tags)
-        response = self.client.post("/api/v1/documents/upload", params=params)
-        response.raise_for_status()
-        return response.json()
-
-    def list_documents(
-        self,
-        doc_type: Optional[str] = None,
-        upload_by: Optional[str] = None,
-        skip: int = 0,
-        limit: int = 20,
-    ) -> dict:
-        """List documents"""
-        params = {"skip": skip, "limit": limit}
-        if doc_type:
-            params["doc_type"] = doc_type
-        if upload_by:
-            params["upload_by"] = upload_by
-        response = self.client.get("/api/v1/documents/", params=params)
-        response.raise_for_status()
-        return response.json()
-
-    def get_document(self, doc_id: str) -> dict:
-        """Get document details"""
-        response = self.client.get(f"/api/v1/documents/{doc_id}")
-        response.raise_for_status()
-        return response.json()
-
-    def get_document_versions(self, doc_id: str) -> list:
-        """Get document versions"""
-        response = self.client.get(f"/api/v1/documents/{doc_id}/versions")
-        response.raise_for_status()
-        return response.json()
-
-    def get_document_preview(self, doc_id: str) -> dict:
-        """Get document preview"""
-        response = self.client.get(f"/api/v1/documents/{doc_id}/preview")
-        response.raise_for_status()
-        return response.json()
-
-    def create_document_version(
-        self,
-        doc_id: str,
-        new_filename: str,
-        new_file_size: int,
-        created_by: str,
-        change_description: Optional[str] = None,
-    ) -> dict:
-        """Create document version"""
-        params = {
-            "new_filename": new_filename,
-            "new_file_size": new_file_size,
-            "created_by": created_by,
-        }
-        if change_description:
-            params["change_description"] = change_description
-        response = self.client.post(f"/api/v1/documents/{doc_id}/versions", params=params)
-        response.raise_for_status()
-        return response.json()
-
+    # ============== Health & Stats ==============
+    
     def health_check(self) -> dict:
         """Check overall health"""
         response = self.client.get("/health")
         response.raise_for_status()
         return response.json()
+
+    def inquiry_health(self) -> dict:
+        """Check inquiry service health"""
+        response = self.client.get("/api/v1/inquiry/health")
+        response.raise_for_status()
+        return response.json()
+
+    def get_stats(self) -> dict:
+        """Get payment and transaction statistics"""
+        response = self.client.get("/api/v1/inquiry/stats")
+        response.raise_for_status()
+        return response.json()
+
+    # ============== Payment Methods ==============
+
+    def list_payments(self, limit: int = 10, offset: int = 0) -> dict:
+        """List all payments with pagination"""
+        response = self.client.get(
+            "/api/v1/inquiry/payments",
+            params={"limit": limit, "offset": offset}
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def search_payments(
+        self,
+        pmt_id: Optional[str] = None,
+        msg_id: Optional[str] = None,
+        iban: Optional[str] = None,
+        status: Optional[str] = None,
+        channel: Optional[str] = None,
+        product: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> dict:
+        """Search payments with filters"""
+        params = {"limit": limit, "offset": offset}
+        if pmt_id:
+            params["pmt_id"] = pmt_id
+        if msg_id:
+            params["msg_id"] = msg_id
+        if iban:
+            params["iban"] = iban
+        if status:
+            params["status"] = status
+        if channel:
+            params["channel"] = channel
+        if product:
+            params["product"] = product
+        if date_from:
+            params["date_from"] = date_from
+        if date_to:
+            params["date_to"] = date_to
+        
+        response = self.client.get("/api/v1/inquiry/payments/search", params=params)
+        response.raise_for_status()
+        return response.json()
+
+    def get_payment(self, pmt_id: str) -> dict:
+        """Get payment by payment ID"""
+        response = self.client.get(f"/api/v1/inquiry/payments/{pmt_id}")
+        response.raise_for_status()
+        return response.json()
+
+    def get_payment_full(self, pmt_id: str) -> dict:
+        """Get payment with all associated transactions"""
+        response = self.client.get(f"/api/v1/inquiry/payments/{pmt_id}/full")
+        response.raise_for_status()
+        return response.json()
+
+    def get_payment_by_message(self, msg_id: str) -> dict:
+        """Get payment by message ID"""
+        response = self.client.get(f"/api/v1/inquiry/payments/by-message/{msg_id}")
+        response.raise_for_status()
+        return response.json()
+
+    # ============== Transaction Methods ==============
+
+    def list_transactions(self, limit: int = 10, offset: int = 0) -> dict:
+        """List all transactions with pagination"""
+        response = self.client.get(
+            "/api/v1/inquiry/transactions",
+            params={"limit": limit, "offset": offset}
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def search_transactions(
+        self,
+        tx_id: Optional[str] = None,
+        pmt_id: Optional[str] = None,
+        end_to_end_id: Optional[str] = None,
+        iban: Optional[str] = None,
+        status: Optional[str] = None,
+        channel: Optional[str] = None,
+        product: Optional[str] = None,
+        amount_min: Optional[float] = None,
+        amount_max: Optional[float] = None,
+        currency: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> dict:
+        """Search transactions with filters"""
+        params = {"limit": limit, "offset": offset}
+        if tx_id:
+            params["tx_id"] = tx_id
+        if pmt_id:
+            params["pmt_id"] = pmt_id
+        if end_to_end_id:
+            params["end_to_end_id"] = end_to_end_id
+        if iban:
+            params["iban"] = iban
+        if status:
+            params["status"] = status
+        if channel:
+            params["channel"] = channel
+        if product:
+            params["product"] = product
+        if amount_min is not None:
+            params["amount_min"] = amount_min
+        if amount_max is not None:
+            params["amount_max"] = amount_max
+        if currency:
+            params["currency"] = currency
+        if date_from:
+            params["date_from"] = date_from
+        if date_to:
+            params["date_to"] = date_to
+        
+        response = self.client.get("/api/v1/inquiry/transactions/search", params=params)
+        response.raise_for_status()
+        return response.json()
+
+    def get_transaction(self, tx_id: str) -> dict:
+        """Get transaction by transaction ID"""
+        response = self.client.get(f"/api/v1/inquiry/transactions/{tx_id}")
+        response.raise_for_status()
+        return response.json()
+
+    def get_transactions_by_payment(self, pmt_id: str) -> dict:
+        """Get all transactions for a payment ID"""
+        response = self.client.get(f"/api/v1/inquiry/transactions/by-payment/{pmt_id}")
+        response.raise_for_status()
+        return response.json()
+
+    def get_transaction_by_e2e(self, e2e_id: str) -> dict:
+        """Get transaction by end-to-end ID"""
+        response = self.client.get(f"/api/v1/inquiry/transactions/by-e2e/{e2e_id}")
+        response.raise_for_status()
+        return response.json()
+
+
+# Singleton instance
+_client: Optional[APIClient] = None
+
+
+def get_client(base_url: str = "http://localhost:8001") -> APIClient:
+    """Get or create API client singleton"""
+    global _client
+    if _client is None:
+        _client = APIClient(base_url=base_url)
+    return _client

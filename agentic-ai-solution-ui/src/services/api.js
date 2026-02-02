@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// Backend API base URL
-const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:9000'
+// Backend API base URL - use port 9001 for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9001'
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -29,7 +29,7 @@ export const apiService = {
   async chat(query) {
     try {
       const response = await apiClient.post('/chat', {
-        query: query,
+        message: query,
         session_id: this.getSessionId()
       })
       return response.data

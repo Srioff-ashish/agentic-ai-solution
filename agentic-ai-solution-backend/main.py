@@ -1,7 +1,7 @@
-"""FastAPI main application"""
+"""FastAPI main application - Agentic Backend with LangGraph and Vertex AI"""
 
 import logging
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
@@ -10,8 +10,8 @@ from models import (
     OrchestratorRequest, OrchestratorResponse, ConversationRequest, 
     ConversationResponse, HealthResponse
 )
-from mcp_client import MCPClient
-from orchestrator import ServiceRouter
+from mcp_client import MCPPaymentClient
+from orchestrator import AgenticOrchestrator
 from langgraph_agents import invoke_agent_graph
 
 # Configure logging
@@ -19,20 +19,26 @@ logging.basicConfig(level=Config.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 # Global instances
-mcp_client: MCPClient = None
-service_router: ServiceRouter = None
+mcp_client: MCPPaymentClient = None
+orchestrator: AgenticOrchestrator = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup/shutdown"""
-    global mcp_client, service_router
+    global mcp_client, orchestrator
     
     # Startup
-    logger.info("Starting up...")
-    mcp_client = MCPClient(base_url=Config.INFRASTRUCTURE_SERVICE_URL)
-    service_router = ServiceRouter(mcp_client)
-    logger.info("Backend services initialized")
+    logger.info("Starting up Agentic AI Backend...")
+    logger.info(f"LLM Provider: {Config.LLM_PROVIDER}")
+    logger.info(f"Mock API URL: {Config.MOCK_API_URL}")
+    logger.info(f"MCP Server URL: {Config.MCP_SERVER_URL}")
+    
+    # Initialize MCP client (lazy connection - will connect on first request)
+    mcp_client = MCPPaymentClient()
+    
+    orchestrator = AgenticOrchestrator(mcp_client)
+    logger.info("Backend services initialized successfully")
     
     yield
     
@@ -66,16 +72,31 @@ app.add_middleware(
 async def health_check():
     """Health check endpoint"""
     try:
-        # Check if MCP client is available
-        infrastructure_healthy = await mcp_client.health_check() if mcp_client else False
+        logger.info(f"Health check called. mcp_client: {mcp_client}, type: {type(mcp_client)}")
+        
+        # Check if MCP client can reach MCP server -> Mock API
+        mcp_health = {}
+        mcp_healthy = False
+        
+        if mcp_client:
+            try:
+                logger.info(f"Calling MCP health check at {mcp_client.base_url}")
+                mcp_health = await mcp_client.health_check()
+                mcp_healthy = "error" not in mcp_health and mcp_health.get("status") == "healthy"
+                logger.info(f"MCP health check result: {mcp_health}, healthy: {mcp_healthy}")
+            except Exception as mcp_err:
+                logger.error(f"MCP health check failed: {mcp_err}", exc_info=True)
+        else:
+            logger.warning("MCP client not initialized")
         
         services = {
-            "mcp": "healthy" if infrastructure_healthy else "unhealthy",
+            "mcp_server": "healthy" if mcp_healthy else "unhealthy",
             "backend": "healthy",
-            "orchestrator": "healthy"
+            "orchestrator": "healthy",
+            "llm_provider": Config.LLM_PROVIDER,
         }
         
-        overall_status = "healthy" if infrastructure_healthy else "degraded"
+        overall_status = "healthy" if mcp_healthy else "degraded"
         
         return HealthResponse(
             status=overall_status,
@@ -87,9 +108,10 @@ async def health_check():
         return HealthResponse(
             status="unhealthy",
             services={
-                "mcp": "unhealthy",
+                "mcp_server": "unhealthy",
                 "backend": "healthy",
-                "orchestrator": "healthy"
+                "orchestrator": "healthy",
+                "llm_provider": Config.LLM_PROVIDER
             },
             timestamp=""
         )
@@ -98,18 +120,19 @@ async def health_check():
 # Main Orchestrator Endpoints
 @app.post("/orchestrate", response_model=OrchestratorResponse, tags=["Orchestration"])
 async def orchestrate(request: OrchestratorRequest):
-    """Main orchestration endpoint - uses LangGraph agent workflow"""
+    """Main orchestration endpoint - uses LangGraph agent workflow with MCP tools"""
     try:
         logger.info(f"Orchestrating request: {request.query}")
         
-        # Invoke LangGraph agent graph
+        # Invoke LangGraph agent graph with MCP client
         result = await invoke_agent_graph(request.query, mcp_client)
         
         return OrchestratorResponse(
             response=result.get("response", ""),
             service_type=result.get("service_type", ""),
             llm_provider=result.get("llm_provider", ""),
-            query=result.get("query", "")
+            query=result.get("query", ""),
+            tool_results=result.get("tool_results", [])
         )
     
     except Exception as e:
@@ -121,7 +144,7 @@ async def orchestrate(request: OrchestratorRequest):
 async def chat(request: ConversationRequest):
     """Chat endpoint for conversation-based interaction"""
     try:
-        # Invoke LangGraph agent graph
+        # Invoke LangGraph agent graph with MCP client
         result = await invoke_agent_graph(request.message, mcp_client)
         
         # Convert to conversation response
@@ -129,9 +152,9 @@ async def chat(request: ConversationRequest):
             message=result.get("response", ""),
             service_type=result.get("service_type", ""),
             action="respond",
-            result=result.get("analysis", {}),
-            thinking=result.get("reasoning", ""),
-            success=True
+            result=result.get("tool_results", []),
+            thinking=f"Processed by {result.get('service_type')} agent",
+            success=result.get("success", False)
         )
     
     except Exception as e:
@@ -139,58 +162,23 @@ async def chat(request: ConversationRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Service-specific Endpoints
-@app.post("/infrastructure/query", response_model=OrchestratorResponse, tags=["Infrastructure"])
-async def infrastructure_query(request: OrchestratorRequest):
-    """Query infrastructure service"""
-    try:
-        logger.info(f"Infrastructure query: {request.query}")
-        result = await invoke_agent_graph(request.query, mcp_client)
-        
-        return OrchestratorResponse(
-            response=result.get("response", ""),
-            service_type="infrastructure",
-            llm_provider=result.get("llm_provider", ""),
-            query=result.get("query", "")
-        )
-    except Exception as e:
-        logger.error(f"Infrastructure query error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
+# Payment Inquiry Endpoint (primary service)
 @app.post("/inquiry/query", response_model=OrchestratorResponse, tags=["Inquiry"])
 async def inquiry_query(request: OrchestratorRequest):
-    """Query inquiry service"""
+    """Query payment inquiry service - uses MCP tools for payment/transaction lookup"""
     try:
         logger.info(f"Inquiry query: {request.query}")
-        result = await invoke_agent_graph(request.query, mcp_client)
+        result = await invoke_agent_graph(request.query, payment_client)
         
         return OrchestratorResponse(
             response=result.get("response", ""),
             service_type="inquiry",
             llm_provider=result.get("llm_provider", ""),
-            query=result.get("query", "")
+            query=result.get("query", ""),
+            tool_results=result.get("tool_results", [])
         )
     except Exception as e:
         logger.error(f"Inquiry query error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/document/query", response_model=OrchestratorResponse, tags=["Document"])
-async def document_query(request: OrchestratorRequest):
-    """Query document service"""
-    try:
-        logger.info(f"Document query: {request.query}")
-        result = await invoke_agent_graph(request.query, mcp_client)
-        
-        return OrchestratorResponse(
-            response=result.get("response", ""),
-            service_type="document",
-            llm_provider=result.get("llm_provider", ""),
-            query=result.get("query", "")
-        )
-    except Exception as e:
-        logger.error(f"Document query error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -200,16 +188,19 @@ async def root():
     """API Root - Returns documentation"""
     return {
         "name": "Agentic AI Solution Backend",
-        "version": "0.1.0",
-        "description": "FastAPI backend with LangGraph agents orchestrating MCP services",
+        "version": "0.2.0",
+        "description": "LangGraph-based agentic backend with Vertex AI and MCP tools",
+        "llm_provider": Config.LLM_PROVIDER,
         "endpoints": {
             "health": "/health",
             "docs": "/docs",
-            "orchestrate": "/orchestrate (POST)",
-            "chat": "/chat (POST)",
-            "infrastructure": "/infrastructure/query (POST)",
-            "inquiry": "/inquiry/query (POST)",
-            "document": "/document/query (POST)"
+            "orchestrate": "/orchestrate (POST) - Main agent workflow",
+            "chat": "/chat (POST) - Chat interface",
+            "inquiry": "/inquiry/query (POST) - Payment inquiry"
+        },
+        "agents": {
+            "inquiry": "Payment/Transaction lookup using MCP tools",
+            "general": "General questions"
         }
     }
 

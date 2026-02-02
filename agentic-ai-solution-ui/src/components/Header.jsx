@@ -2,21 +2,42 @@ import React from 'react'
 
 export default function Header() {
   return (
-    <header className="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700/50 shadow-lg">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">⚡</span>
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">Agentic AI Solution</h1>
-            <p className="text-xs text-slate-400">Intelligent Conversation Interface</p>
-          </div>
+    <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm">
+      {/* Left - Logo */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm text-slate-400">Connected</span>
+        <span className="text-lg font-semibold text-orange-600">Harmonia</span>
+      </div>
+
+      {/* Right - User Info */}
+      <div className="flex items-center gap-4">
+        {/* Company Dropdown */}
+        <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors">
+          <div className="w-5 h-5 bg-orange-100 rounded flex items-center justify-center">
+            <svg className="w-3 h-3 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <span className="text-sm">UAT Test Company</span>
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* AI Assistant */}
+        <div className="flex items-center gap-1.5 text-gray-700">
+          <span className="text-orange-500">✦</span>
+          <span className="text-sm">AI Assistant</span>
         </div>
+
+        {/* Logout Button */}
+        <button className="px-4 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+          Log out
+        </button>
       </div>
     </header>
   )

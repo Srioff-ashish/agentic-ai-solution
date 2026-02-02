@@ -57,12 +57,16 @@ class AgentResponse(BaseModel):
 
 class OrchestratorResponse(BaseModel):
     """Final response from orchestrator"""
-    query: str
-    service_type: str  # Which service handled the request
-    agent_response: AgentResponse
+    query: str = ""
+    service_type: str = ""  # Which service handled the request
+    agent_response: Optional[AgentResponse] = None
     final_result: Any = None
-    status: str  # success, partial, error
-    message: str
+    status: str = ""  # success, partial, error
+    message: str = ""
+    # New fields for simpler responses
+    response: str = ""  # LLM response text
+    llm_provider: str = ""  # Which LLM provider was used
+    tool_results: list[dict[str, Any]] = Field(default_factory=list)  # MCP tool results
 
 
 # Chat/Conversation Models for UI

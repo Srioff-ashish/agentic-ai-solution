@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 
-export default function InputArea({ onSendMessage, loading }) {
+export default function InputArea({ onSendMessage, loading, centered = false }) {
   const [input, setInput] = useState('')
   const textareaRef = useRef(null)
 
@@ -32,60 +32,36 @@ export default function InputArea({ onSendMessage, loading }) {
   }
 
   return (
-    <div className="border-t border-slate-700/50 bg-gradient-to-b from-slate-800 to-slate-900 p-6">
-      <div className="max-w-3xl mx-auto">
-        <form onSubmit={handleSubmit} className="flex gap-3">
-          <div className="flex-1 relative">
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={handleInput}
-              onKeyPress={handleKeyPress}
-              placeholder="Type your message here... (Shift+Enter for new line)"
-              disabled={loading}
-              rows={1}
-              className="w-full px-5 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent resize-none transition-all duration-200 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-            {input.length > 0 && (
-              <div className="absolute right-4 bottom-2 text-xs text-slate-400">
-                {input.length}
-              </div>
-            )}
-          </div>
+    <div className={`${centered ? 'w-full max-w-2xl mx-auto px-4' : 'border-t border-gray-200 bg-white p-4'}`}>
+      <form onSubmit={handleSubmit} className="relative">
+        <div className="relative bg-white border border-gray-300 rounded-xl shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-orange-200 focus-within:border-orange-400 transition-all">
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={handleInput}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask me anything"
+            disabled={loading}
+            rows={2}
+            className="w-full px-4 py-3 pr-12 text-gray-700 placeholder-gray-400 bg-transparent outline-none resize-none text-sm"
+          />
           
+          {/* Send Button */}
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="px-6 h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 flex items-center gap-2 active:scale-95"
+            className="absolute right-3 bottom-3 w-8 h-8 bg-gray-400 hover:bg-orange-500 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors"
           >
             {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-transparent border-t-white rounded-full animate-spin"></div>
-                <span className="hidden sm:inline">Sending...</span>
-              </>
+              <div className="w-4 h-4 border-2 border-transparent border-t-white rounded-full animate-spin"></div>
             ) : (
-              <>
-                <span className="hidden sm:inline">Send</span>
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5.951-2.975a1 1 0 00.858 0l5.951 2.975a1 1 0 001.169-1.409l-7-14z" />
-                </svg>
-              </>
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
             )}
           </button>
-        </form>
-        
-        <div className="mt-3 flex gap-2 flex-wrap">
-          <button className="text-xs px-3 py-1 rounded-full bg-slate-700/50 text-slate-300 hover:bg-slate-700 transition-colors border border-slate-600/30">
-            💡 Example prompt
-          </button>
-          <button className="text-xs px-3 py-1 rounded-full bg-slate-700/50 text-slate-300 hover:bg-slate-700 transition-colors border border-slate-600/30">
-            🔍 Search
-          </button>
-          <button className="text-xs px-3 py-1 rounded-full bg-slate-700/50 text-slate-300 hover:bg-slate-700 transition-colors border border-slate-600/30">
-            ⚙️ Settings
-          </button>
         </div>
-      </div>
+      </form>
     </div>
   )
 }
