@@ -62,6 +62,7 @@ class AgentState(TypedDict):
     """State passed through the agentic workflow"""
     query: str
     messages: list[BaseMessage]
+    conversation_history: list[dict]  # Previous messages for context
     service_type: str
     tool_calls: list[dict]
     tool_results: list[dict]
@@ -507,10 +508,19 @@ When presenting results:
 
 Always use the tools to get real data before responding."""
 
-    messages = [
-        SystemMessage(content=system_prompt),
-        HumanMessage(content=state["query"])
-    ]
+    # Build messages with conversation history for context
+    messages = [SystemMessage(content=system_prompt)]
+    
+    # Add conversation history as context
+    conversation_history = state.get("conversation_history", [])
+    for msg in conversation_history:
+        if msg.get("sender") == "user":
+            messages.append(HumanMessage(content=msg.get("text", "")))
+        elif msg.get("sender") == "ai":
+            messages.append(AIMessage(content=msg.get("text", "")))
+    
+    # Add the current query
+    messages.append(HumanMessage(content=state["query"]))
     
     # First LLM call - may request tools
     logger.info(f"📤 Sending query to LLM (first call)...")
@@ -595,10 +605,19 @@ ask more specifically so you can use the inquiry tools.
 
 For other questions, provide helpful general responses."""
 
-    messages = [
-        SystemMessage(content=system_prompt),
-        HumanMessage(content=state["query"])
-    ]
+    # Build messages with conversation history for context
+    messages = [SystemMessage(content=system_prompt)]
+    
+    # Add conversation history as context
+    conversation_history = state.get("conversation_history", [])
+    for msg in conversation_history:
+        if msg.get("sender") == "user":
+            messages.append(HumanMessage(content=msg.get("text", "")))
+        elif msg.get("sender") == "ai":
+            messages.append(AIMessage(content=msg.get("text", "")))
+    
+    # Add the current query
+    messages.append(HumanMessage(content=state["query"]))
     
     response = await asyncio.to_thread(llm.invoke, messages)
     state["response"] = response.content
@@ -661,7 +680,8 @@ def build_agent_graph():
 
 async def invoke_agent_graph(
     query: str,
-    mcp_client: Optional[MCPPaymentClient] = None
+    mcp_client: Optional[MCPPaymentClient] = None,
+    conversation_history: Optional[list[dict]] = None
 ) -> dict[str, Any]:
     """
     Invoke the agent graph with a query.
@@ -669,6 +689,7 @@ async def invoke_agent_graph(
     Args:
         query: User query
         mcp_client: MCP client for payment inquiry tools
+        conversation_history: Optional list of previous messages [{"sender": "user"|"ai", "text": "..."}]
     
     Returns:
         Response dict with response text, service type, and metadata
@@ -693,10 +714,16 @@ async def invoke_agent_graph(
         set_mcp_client(mcp_client)
         logger.info(f"[{query_id}] 🔌 MCP client configured")
     
+    # Log conversation history
+    history_count = len(conversation_history) if conversation_history else 0
+    if history_count > 0:
+        logger.info(f"[{query_id}] 📜 Conversation context: {history_count} previous messages")
+    
     # Create initial state
     initial_state: AgentState = {
         "query": query,
         "messages": [],
+        "conversation_history": conversation_history or [],
         "service_type": "",
         "tool_calls": [],
         "tool_results": [],

@@ -33,11 +33,17 @@ const getFollowUpSuggestions = (lastMessage) => {
   ]
 }
 
-export default function ConversationUI() {
-  const [messages, setMessages] = useState([])
+export default function ConversationUI({ chatId, initialMessages = [], onMessageSent, onNewChat }) {
+  const [messages, setMessages] = useState(initialMessages)
   const [loading, setLoading] = useState(false)
   const [suggestions, setSuggestions] = useState([])
   const messagesEndRef = useRef(null)
+
+  // Update messages when initialMessages changes (when loading a chat)
+  useEffect(() => {
+    setMessages(initialMessages)
+    setSuggestions([])
+  }, [initialMessages])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -55,16 +61,28 @@ export default function ConversationUI() {
       id: messages.length + 1,
       text: text,
       sender: 'user',
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     }
 
     setMessages(prev => [...prev, userMessage])
     setLoading(true)
     setSuggestions([])
 
+    // Save user message to backend
+    if (onMessageSent) {
+      onMessageSent(userMessage)
+    }
+
     try {
-      // Call the orchestrate endpoint which routes to appropriate agent
-      const response = await apiService.orchestrate(text)
+      // Prepare conversation history for context (exclude the current message)
+      // Include only previous messages, not the one we just added
+      const conversationHistory = messages.map(msg => ({
+        sender: msg.sender,
+        text: msg.text
+      }))
+      
+      // Call the orchestrate endpoint with conversation history
+      const response = await apiService.orchestrate(text, conversationHistory)
       
       // Extract response text
       const responseText = response.response || response.analysis || JSON.stringify(response, null, 2)
@@ -73,9 +91,14 @@ export default function ConversationUI() {
         id: messages.length + 2,
         text: responseText,
         sender: 'ai',
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       }
       setMessages(prev => [...prev, aiMessage])
+      
+      // Save AI response to backend
+      if (onMessageSent) {
+        onMessageSent(aiMessage)
+      }
       
       // Generate follow-up suggestions
       setSuggestions(getFollowUpSuggestions(aiMessage))
@@ -87,10 +110,16 @@ export default function ConversationUI() {
         id: messages.length + 2,
         text: `Error: ${errorInfo.message}`,
         sender: 'ai',
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         isError: true
       }
       setMessages(prev => [...prev, errorMessage])
+      
+      // Save error message to backend too
+      if (onMessageSent) {
+        onMessageSent(errorMessage)
+      }
+      
       setSuggestions([])
     } finally {
       setLoading(false)

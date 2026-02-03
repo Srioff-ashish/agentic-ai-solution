@@ -15,6 +15,9 @@ agentic-ai-solution-backend/gcp/
 agentic-ai-solution-backend/googe_service_account.json
 *.json.bak
 
+# Chat history storage
+agentic-ai-solution-backend/chat_history/
+
 # Node modules
 node_modules/
 

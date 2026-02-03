@@ -40,10 +40,11 @@ export const apiService = {
   },
 
   // Orchestrate endpoint - general query routing
-  async orchestrate(query) {
+  async orchestrate(query, conversationHistory = []) {
     try {
       const response = await apiClient.post('/orchestrate', {
-        query: query
+        query: query,
+        conversation_history: conversationHistory
       })
       return response.data
     } catch (error) {
@@ -104,6 +105,74 @@ export const apiService = {
   // Clear session
   clearSession() {
     sessionStorage.removeItem('session_id')
+  },
+
+  // ============== Chat History API ==============
+
+  // Get all chats
+  async getChats() {
+    try {
+      const response = await apiClient.get('/chats')
+      return response.data.chats || []
+    } catch (error) {
+      console.error('Failed to get chats:', error)
+      return []
+    }
+  },
+
+  // Get a specific chat by ID
+  async getChat(chatId) {
+    try {
+      const response = await apiClient.get(`/chats/${chatId}`)
+      return response.data
+    } catch (error) {
+      console.error('Failed to get chat:', error)
+      throw error
+    }
+  },
+
+  // Add message to chat
+  async addMessageToChat(chatId, message) {
+    try {
+      const response = await apiClient.post(`/chats/${chatId}/messages`, message)
+      return response.data
+    } catch (error) {
+      console.error('Failed to add message:', error)
+      throw error
+    }
+  },
+
+  // Update chat title
+  async updateChatTitle(chatId, title) {
+    try {
+      const response = await apiClient.put(`/chats/${chatId}/title`, { title })
+      return response.data
+    } catch (error) {
+      console.error('Failed to update chat title:', error)
+      throw error
+    }
+  },
+
+  // Delete a chat
+  async deleteChat(chatId) {
+    try {
+      const response = await apiClient.delete(`/chats/${chatId}`)
+      return response.data
+    } catch (error) {
+      console.error('Failed to delete chat:', error)
+      throw error
+    }
+  },
+
+  // Search chats
+  async searchChats(query) {
+    try {
+      const response = await apiClient.get('/chats/search', { params: { q: query } })
+      return response.data
+    } catch (error) {
+      console.error('Failed to search chats:', error)
+      return { results: [], query }
+    }
   }
 }
 

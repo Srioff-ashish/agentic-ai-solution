@@ -15,6 +15,7 @@ from mcp_client import MCPPaymentClient
 from orchestrator import AgenticOrchestrator
 from langgraph_agents import invoke_agent_graph
 from log_streamer import setup_log_streaming, log_generator, get_log_history, add_external_log
+from chat_storage import chat_storage, ChatMessageModel
 
 # Configure logging
 logging.basicConfig(level=Config.LOG_LEVEL)
@@ -128,9 +129,10 @@ async def orchestrate(request: OrchestratorRequest):
     """Main orchestration endpoint - uses LangGraph agent workflow with MCP tools"""
     try:
         logger.info(f"Orchestrating request: {request.query}")
+        logger.info(f"Conversation history: {len(request.conversation_history)} messages")
         
-        # Invoke LangGraph agent graph with MCP client
-        result = await invoke_agent_graph(request.query, mcp_client)
+        # Invoke LangGraph agent graph with MCP client and conversation history
+        result = await invoke_agent_graph(request.query, mcp_client, request.conversation_history)
         
         return OrchestratorResponse(
             response=result.get("response", ""),
@@ -239,6 +241,73 @@ async def receive_external_log(module: str, level: str, message: str):
     """Receive logs from external modules (MCP, Mock API)"""
     add_external_log(module, level, message)
     return {"status": "ok"}
+
+
+# ============== Chat History Endpoints ==============
+
+@app.get("/chats", tags=["Chat History"])
+async def list_chats():
+    """List all chat sessions"""
+    chats = chat_storage.list_chats()
+    return {"chats": chats}
+
+
+@app.get("/chats/search", tags=["Chat History"])
+async def search_chats(q: str):
+    """Search chats by title or content"""
+    if not q or len(q.strip()) < 2:
+        return {"results": [], "query": q}
+    results = chat_storage.search_chats(q.strip())
+    return {"results": results, "query": q}
+
+
+@app.get("/chats/{chat_id}", tags=["Chat History"])
+async def get_chat(chat_id: str):
+    """Get a specific chat session with all messages"""
+    chat = chat_storage.get_chat(chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return chat.model_dump()
+
+
+@app.post("/chats/{chat_id}/messages", tags=["Chat History"])
+async def add_message_to_chat(chat_id: str, message: dict):
+    """Add a message to a chat session"""
+    try:
+        chat_message = ChatMessageModel(
+            id=message.get("id", 0),
+            text=message.get("text", ""),
+            sender=message.get("sender", "user"),
+            timestamp=message.get("timestamp", ""),
+            isError=message.get("isError", False)
+        )
+        chat = chat_storage.add_message(chat_id, chat_message)
+        return {"status": "ok", "chat_id": chat.id, "message_count": len(chat.messages)}
+    except Exception as e:
+        logger.error(f"Error adding message: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/chats/{chat_id}/title", tags=["Chat History"])
+async def update_chat_title(chat_id: str, data: dict):
+    """Update a chat's title"""
+    title = data.get("title", "").strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="Title is required")
+    
+    chat = chat_storage.update_chat_title(chat_id, title)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return {"status": "ok", "chat_id": chat.id, "title": chat.title}
+
+
+@app.delete("/chats/{chat_id}", tags=["Chat History"])
+async def delete_chat(chat_id: str):
+    """Delete a chat session"""
+    success = chat_storage.delete_chat(chat_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return {"status": "ok", "deleted": chat_id}
 
 
 if __name__ == "__main__":

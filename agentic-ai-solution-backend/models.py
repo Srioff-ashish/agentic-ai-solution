@@ -33,6 +33,7 @@ class OrchestratorRequest(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict, description="Additional parameters")
     user_id: Optional[str] = None
     context: dict[str, Any] = Field(default_factory=dict, description="Additional context")
+    conversation_history: list[dict[str, Any]] = Field(default_factory=list, description="Previous messages in the conversation")
 
 
 # Response Models
