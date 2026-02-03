@@ -90,9 +90,16 @@ def get_llm() -> BaseChatModel:
         if not Config.GOOGLE_CLOUD_PROJECT:
             raise ValueError("GOOGLE_CLOUD_PROJECT environment variable not set")
         
-        logger.info(f"Using Vertex AI with project: {Config.GOOGLE_CLOUD_PROJECT}")
+        model_name = Config.VERTEX_AI_MODEL
+        logger.info(f"═══════════════════════════════════════════════════════════════")
+        logger.info(f"🤖 LLM CONFIGURATION")
+        logger.info(f"   Provider: Vertex AI")
+        logger.info(f"   Model: {model_name}")
+        logger.info(f"   Project: {Config.GOOGLE_CLOUD_PROJECT}")
+        logger.info(f"   Location: {Config.GOOGLE_CLOUD_LOCATION}")
+        logger.info(f"═══════════════════════════════════════════════════════════════")
         return ChatVertexAI(
-            model=Config.VERTEX_AI_MODEL,
+            model=model_name,
             project=Config.GOOGLE_CLOUD_PROJECT,
             location=Config.GOOGLE_CLOUD_LOCATION,
             temperature=0.3,
@@ -105,9 +112,14 @@ def get_llm() -> BaseChatModel:
         if not Config.GOOGLE_API_KEY:
             raise ValueError("GOOGLE_API_KEY environment variable not set")
         
-        logger.info("Using Google Gemini API")
+        model_name = Config.GOOGLE_MODEL
+        logger.info(f"═══════════════════════════════════════════════════════════════")
+        logger.info(f"🤖 LLM CONFIGURATION")
+        logger.info(f"   Provider: Google Gemini API")
+        logger.info(f"   Model: {model_name}")
+        logger.info(f"═══════════════════════════════════════════════════════════════")
         return ChatGoogleGenerativeAI(
-            model=Config.GOOGLE_MODEL,
+            model=model_name,
             google_api_key=Config.GOOGLE_API_KEY,
             temperature=0.3,
         )
@@ -431,7 +443,9 @@ INQUIRY_TOOLS = [
 
 def detect_service(state: AgentState) -> AgentState:
     """Determine query type and route to appropriate agent"""
-    logger.info("Node: Orchestrator - Detecting service type")
+    logger.info(f"═══════════════════════════════════════════════════════════════")
+    logger.info(f"🔀 ORCHESTRATOR - Service Detection")
+    logger.info(f"   Query: {state['query'][:100]}...")
     
     query_lower = state["query"].lower()
     
@@ -445,10 +459,13 @@ def detect_service(state: AgentState) -> AgentState:
     
     if any(keyword in query_lower for keyword in inquiry_keywords):
         state["service_type"] = ServiceType.INQUIRY.value
-        logger.info("Routed to: Inquiry Agent")
+        logger.info(f"   ✅ Detected: Payment/Transaction Inquiry")
+        logger.info(f"   🔄 Routing to: INQUIRY AGENT")
     else:
         state["service_type"] = ServiceType.GENERAL.value
-        logger.info("Routed to: General Agent")
+        logger.info(f"   ✅ Detected: General Question")
+        logger.info(f"   🔄 Routing to: GENERAL AGENT")
+    logger.info(f"═══════════════════════════════════════════════════════════════")
     
     return state
 
@@ -459,10 +476,14 @@ def detect_service(state: AgentState) -> AgentState:
 
 async def inquiry_agent(state: AgentState) -> AgentState:
     """Handle payment/transaction inquiries using MCP tools"""
-    logger.info("Node: Inquiry Agent")
+    logger.info(f"═══════════════════════════════════════════════════════════════")
+    logger.info(f"💳 INQUIRY AGENT - Processing Query")
+    logger.info(f"═══════════════════════════════════════════════════════════════")
     
     llm = get_llm()
     llm_with_tools = llm.bind_tools(INQUIRY_TOOLS)
+    
+    logger.info(f"🔧 Available tools: {[t.name for t in INQUIRY_TOOLS]}")
     
     system_prompt = """You are a Payment Inquiry Assistant for the OMaaP system.
 
@@ -492,11 +513,13 @@ Always use the tools to get real data before responding."""
     ]
     
     # First LLM call - may request tools
+    logger.info(f"📤 Sending query to LLM (first call)...")
     response = await asyncio.to_thread(llm_with_tools.invoke, messages)
     
     # Check if tools were called
     if hasattr(response, 'tool_calls') and response.tool_calls:
-        logger.info(f"Tool calls requested: {[tc['name'] for tc in response.tool_calls]}")
+        tool_names = [tc['name'] for tc in response.tool_calls]
+        logger.info(f"🔧 LLM requested {len(response.tool_calls)} tool(s): {tool_names}")
         
         messages.append(response)
         tool_results = []
@@ -506,13 +529,17 @@ Always use the tools to get real data before responding."""
             tool_name = tool_call['name']
             tool_args = tool_call['args']
             
-            logger.info(f"Executing tool: {tool_name} with args: {tool_args}")
+            logger.info(f"───────────────────────────────────────────────────────────────")
+            logger.info(f"⚡ TOOL EXECUTION: {tool_name}")
+            logger.info(f"   Args: {json.dumps(tool_args, indent=2)}")
             
             # Find and execute the tool
             tool_fn = next((t for t in INQUIRY_TOOLS if t.name == tool_name), None)
             if tool_fn:
                 try:
                     result = await tool_fn.ainvoke(tool_args)
+                    result_preview = result[:200] + "..." if len(result) > 200 else result
+                    logger.info(f"   ✅ Result: {result_preview}")
                     tool_results.append({
                         "tool": tool_name,
                         "args": tool_args,
@@ -523,22 +550,28 @@ Always use the tools to get real data before responding."""
                         tool_call_id=tool_call['id']
                     ))
                 except Exception as e:
-                    logger.error(f"Tool execution error: {e}")
+                    logger.error(f"   ❌ Tool execution error: {e}")
                     messages.append(ToolMessage(
                         content=json.dumps({"error": str(e)}),
                         tool_call_id=tool_call['id']
                     ))
         
         state["tool_results"] = tool_results
+        logger.info(f"───────────────────────────────────────────────────────────────")
         
         # Second LLM call with tool results
+        logger.info(f"📤 Sending tool results to LLM (second call)...")
         final_response = await asyncio.to_thread(llm_with_tools.invoke, messages)
         state["response"] = final_response.content
+        logger.info(f"📥 LLM response received (length: {len(final_response.content)} chars)")
     else:
         state["response"] = response.content
+        logger.info(f"📥 LLM response received (no tools needed)")
     
     state["messages"] = messages
-    logger.info("Inquiry Agent response generated")
+    logger.info(f"═══════════════════════════════════════════════════════════════")
+    logger.info(f"✅ INQUIRY AGENT - Complete")
+    logger.info(f"═══════════════════════════════════════════════════════════════")
     
     return state
 
@@ -549,7 +582,9 @@ Always use the tools to get real data before responding."""
 
 async def general_agent(state: AgentState) -> AgentState:
     """Handle general questions"""
-    logger.info("Node: General Agent")
+    logger.info(f"═══════════════════════════════════════════════════════════════")
+    logger.info(f"💬 GENERAL AGENT - Processing Query")
+    logger.info(f"═══════════════════════════════════════════════════════════════")
     
     llm = get_llm()
     
@@ -638,11 +673,25 @@ async def invoke_agent_graph(
     Returns:
         Response dict with response text, service type, and metadata
     """
-    logger.info(f"Invoking agent graph with query: {query[:100]}...")
+    import uuid
+    query_id = str(uuid.uuid4())[:8]
+    
+    logger.info(f"")
+    logger.info(f"╔═══════════════════════════════════════════════════════════════╗")
+    logger.info(f"║  🚀 NEW QUERY [{query_id}]")
+    logger.info(f"╠═══════════════════════════════════════════════════════════════╣")
+    logger.info(f"║  Query: {query[:60]}{'...' if len(query) > 60 else ''}")
+    logger.info(f"║  Provider: {Config.LLM_PROVIDER}")
+    if Config.LLM_PROVIDER == "vertexai":
+        logger.info(f"║  Model: {Config.VERTEX_AI_MODEL}")
+    elif Config.LLM_PROVIDER == "google":
+        logger.info(f"║  Model: {Config.GOOGLE_MODEL}")
+    logger.info(f"╚═══════════════════════════════════════════════════════════════╝")
     
     # Set up the payment client for tools
     if mcp_client:
         set_mcp_client(mcp_client)
+        logger.info(f"[{query_id}] 🔌 MCP client configured")
     
     # Create initial state
     initial_state: AgentState = {
@@ -657,26 +706,45 @@ async def invoke_agent_graph(
     
     try:
         # Build and invoke graph
+        logger.info(f"[{query_id}] 🔨 Building agent graph...")
         graph = build_agent_graph()
         
         # Use ainvoke for async
+        logger.info(f"[{query_id}] ⚡ Invoking agent graph...")
         final_state = await graph.ainvoke(initial_state)
+        
+        logger.info(f"")
+        logger.info(f"╔═══════════════════════════════════════════════════════════════╗")
+        logger.info(f"║  ✅ QUERY COMPLETE [{query_id}]")
+        logger.info(f"╠═══════════════════════════════════════════════════════════════╣")
+        logger.info(f"║  Service Type: {final_state.get('service_type', 'unknown')}")
+        logger.info(f"║  Tools Used: {len(final_state.get('tool_results', []))}")
+        logger.info(f"║  Response Length: {len(final_state.get('response', ''))} chars")
+        logger.info(f"╚═══════════════════════════════════════════════════════════════╝")
         
         return {
             "response": final_state.get("response", ""),
             "service_type": final_state.get("service_type", ""),
             "tool_results": final_state.get("tool_results", []),
             "query": query,
+            "query_id": query_id,
             "llm_provider": Config.LLM_PROVIDER,
+            "model": Config.VERTEX_AI_MODEL if Config.LLM_PROVIDER == "vertexai" else Config.GOOGLE_MODEL,
             "success": True
         }
     
     except Exception as e:
-        logger.error(f"Error in agent graph: {e}")
+        logger.error(f"")
+        logger.error(f"╔═══════════════════════════════════════════════════════════════╗")
+        logger.error(f"║  ❌ QUERY FAILED [{query_id}]")
+        logger.error(f"╠═══════════════════════════════════════════════════════════════╣")
+        logger.error(f"║  Error: {str(e)[:50]}")
+        logger.error(f"╚═══════════════════════════════════════════════════════════════╝")
         return {
             "response": f"I encountered an error processing your request: {str(e)}",
             "service_type": "error",
             "query": query,
+            "query_id": query_id,
             "llm_provider": Config.LLM_PROVIDER,
             "success": False,
             "error": str(e)

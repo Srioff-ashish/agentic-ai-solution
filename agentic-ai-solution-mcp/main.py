@@ -1,10 +1,54 @@
 """MCP Server for Payment and Transaction Inquiry using FastMCP"""
 import json
+import logging
+import os
+import httpx
 from typing import Optional
+from functools import wraps
 
 from fastmcp import FastMCP
 
 from api_client import get_client
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("mcp-server")
+
+# Backend URL for log forwarding
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:9001")
+
+def forward_log(level: str, message: str):
+    """Forward log to backend aggregator"""
+    try:
+        httpx.post(
+            f"{BACKEND_URL}/logs/external",
+            params={"module": "mcp", "level": level, "message": message},
+            timeout=1.0
+        )
+    except:
+        pass  # Don't fail if backend is not available
+
+def log_tool_call(func):
+    """Decorator to log MCP tool calls"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        tool_name = func.__name__
+        logger.info(f"═══════════════════════════════════════════════════════════════")
+        logger.info(f"🔧 MCP TOOL CALLED: {tool_name}")
+        logger.info(f"   Args: {kwargs}")
+        forward_log("INFO", f"🔧 MCP TOOL CALLED: {tool_name} | Args: {kwargs}")
+        
+        try:
+            result = func(*args, **kwargs)
+            result_preview = result[:150] + "..." if len(result) > 150 else result
+            logger.info(f"   ✅ Success: {result_preview}")
+            forward_log("INFO", f"✅ MCP TOOL SUCCESS: {tool_name}")
+            return result
+        except Exception as e:
+            logger.error(f"   ❌ Error: {str(e)}")
+            forward_log("ERROR", f"❌ MCP TOOL ERROR: {tool_name} | {str(e)}")
+            raise
+    return wrapper
 
 # Initialize FastMCP server
 mcp = FastMCP(
@@ -23,10 +67,16 @@ mcp = FastMCP(
     """
 )
 
+logger.info("═══════════════════════════════════════════════════════════════")
+logger.info("🚀 MCP Server Starting...")
+logger.info(f"   Backend URL: {BACKEND_URL}")
+logger.info("═══════════════════════════════════════════════════════════════")
+
 
 # ============== Health & Stats Tools ==============
 
 @mcp.tool()
+@log_tool_call
 def health_check() -> str:
     """Check overall API health status"""
     client = get_client()
@@ -35,6 +85,7 @@ def health_check() -> str:
 
 
 @mcp.tool()
+@log_tool_call
 def get_inquiry_stats() -> str:
     """Get payment and transaction statistics including status breakdown"""
     client = get_client()
@@ -45,6 +96,7 @@ def get_inquiry_stats() -> str:
 # ============== Payment Tools ==============
 
 @mcp.tool()
+@log_tool_call
 def list_payments(limit: int = 10, offset: int = 0) -> str:
     """
     List all payments with pagination.
@@ -62,6 +114,7 @@ def list_payments(limit: int = 10, offset: int = 0) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 def search_payments(
     pmt_id: Optional[str] = None,
     msg_id: Optional[str] = None,
@@ -109,6 +162,7 @@ def search_payments(
 
 
 @mcp.tool()
+@log_tool_call
 def get_payment(pmt_id: str) -> str:
     """
     Get payment details by payment ID.
@@ -125,6 +179,7 @@ def get_payment(pmt_id: str) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 def get_payment_with_transactions(pmt_id: str) -> str:
     """
     Get payment along with all associated transactions.
@@ -141,6 +196,7 @@ def get_payment_with_transactions(pmt_id: str) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 def get_payment_by_message_id(msg_id: str) -> str:
     """
     Get payment by message ID.
@@ -159,6 +215,7 @@ def get_payment_by_message_id(msg_id: str) -> str:
 # ============== Transaction Tools ==============
 
 @mcp.tool()
+@log_tool_call
 def list_transactions(limit: int = 10, offset: int = 0) -> str:
     """
     List all transactions with pagination.
@@ -176,6 +233,7 @@ def list_transactions(limit: int = 10, offset: int = 0) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 def search_transactions(
     tx_id: Optional[str] = None,
     pmt_id: Optional[str] = None,
@@ -235,6 +293,7 @@ def search_transactions(
 
 
 @mcp.tool()
+@log_tool_call
 def get_transaction(tx_id: str) -> str:
     """
     Get transaction details by transaction ID.
@@ -251,6 +310,7 @@ def get_transaction(tx_id: str) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 def get_transactions_by_payment(pmt_id: str) -> str:
     """
     Get all transactions associated with a payment.
@@ -267,6 +327,7 @@ def get_transactions_by_payment(pmt_id: str) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 def get_transaction_by_end_to_end_id(e2e_id: str) -> str:
     """
     Get transaction by end-to-end ID.

@@ -1,9 +1,23 @@
 """Configuration for the backend"""
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Set GOOGLE_APPLICATION_CREDENTIALS if specified in .env
+_gcp_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+if _gcp_creds:
+    # Convert relative path to absolute path
+    creds_path = Path(_gcp_creds)
+    if not creds_path.is_absolute():
+        creds_path = Path(__file__).parent / _gcp_creds
+    if creds_path.exists():
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(creds_path.resolve())
+        print(f"✓ Google credentials loaded from: {creds_path.resolve()}")
+    else:
+        print(f"⚠ Google credentials file not found: {creds_path}")
 
 
 class Config:

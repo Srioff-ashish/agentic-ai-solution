@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 export default function Header() {
   return (
@@ -33,6 +34,15 @@ export default function Header() {
           <span className="text-orange-500">✦</span>
           <span className="text-sm">AI Assistant</span>
         </div>
+
+        {/* Log Viewer Link */}
+        <Link 
+          to="/logs" 
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors"
+        >
+          <span>📋</span>
+          <span>Logs</span>
+        </Link>
 
         {/* Logout Button */}
         <button className="px-4 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">

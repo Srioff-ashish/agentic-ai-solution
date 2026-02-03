@@ -3,6 +3,7 @@
 import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from contextlib import asynccontextmanager
 
 from config import Config
@@ -13,10 +14,14 @@ from models import (
 from mcp_client import MCPPaymentClient
 from orchestrator import AgenticOrchestrator
 from langgraph_agents import invoke_agent_graph
+from log_streamer import setup_log_streaming, log_generator, get_log_history, add_external_log
 
 # Configure logging
 logging.basicConfig(level=Config.LOG_LEVEL)
 logger = logging.getLogger(__name__)
+
+# Setup log streaming
+setup_log_streaming("backend")
 
 # Global instances
 mcp_client: MCPPaymentClient = None
@@ -196,13 +201,44 @@ async def root():
             "docs": "/docs",
             "orchestrate": "/orchestrate (POST) - Main agent workflow",
             "chat": "/chat (POST) - Chat interface",
-            "inquiry": "/inquiry/query (POST) - Payment inquiry"
+            "inquiry": "/inquiry/query (POST) - Payment inquiry",
+            "logs_stream": "/logs/stream (GET) - SSE log stream",
+            "logs_history": "/logs/history (GET) - Recent log history"
         },
         "agents": {
             "inquiry": "Payment/Transaction lookup using MCP tools",
             "general": "General questions"
         }
     }
+
+
+# Log Streaming Endpoints
+@app.get("/logs/stream", tags=["Logs"])
+async def stream_logs():
+    """Stream logs via Server-Sent Events"""
+    logger.info("New log stream client connected")
+    return StreamingResponse(
+        log_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+
+@app.get("/logs/history", tags=["Logs"])
+async def get_logs_history():
+    """Get recent log history"""
+    return {"logs": get_log_history()}
+
+
+@app.post("/logs/external", tags=["Logs"])
+async def receive_external_log(module: str, level: str, message: str):
+    """Receive logs from external modules (MCP, Mock API)"""
+    add_external_log(module, level, message)
+    return {"status": "ok"}
 
 
 if __name__ == "__main__":
